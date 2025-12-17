@@ -16,7 +16,7 @@ public class LootCommandHandler implements CommandHandler {
         TextInput body = TextInput.create(InputEnum.SESSION_INPUT.getId(), "Session Analyzer", TextInputStyle.PARAGRAPH)
                 .setPlaceholder("Your Session Analyzer goes here")
                 .setMinLength(150)
-                .setMaxLength(1500)
+                .setMaxLength(4000)
                 .build();
 
         Modal modal = Modal.create(ModalEnum.SESSION.getName(), ModalEnum.SESSION.getTitle())

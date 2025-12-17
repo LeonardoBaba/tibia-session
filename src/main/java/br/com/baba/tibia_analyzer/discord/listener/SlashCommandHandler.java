@@ -2,7 +2,7 @@ package br.com.baba.tibia_analyzer.discord.listener;
 
 import br.com.baba.tibia_analyzer.discord.enums.CommandEnum;
 import br.com.baba.tibia_analyzer.discord.enums.ModalEnum;
-import br.com.baba.tibia_analyzer.discord.exception.ConverterException;
+import br.com.baba.tibia_analyzer.core.exception.ConverterException;
 import br.com.baba.tibia_analyzer.discord.interactions.commands.CommandHandler;
 import br.com.baba.tibia_analyzer.discord.interactions.modals.ModalHandler;
 import br.com.baba.tibia_analyzer.discord.service.CommandHandlerFactory;
@@ -28,8 +28,13 @@ public class SlashCommandHandler extends ListenerAdapter {
         CommandEnum.fromName(event.getName())
                 .ifPresentOrElse(
                         cmd -> {
-                            CommandHandler handler = commandHandlerFactory.getHandler(cmd);
-                            handler.process(event);
+                            try {
+                                CommandHandler handler = commandHandlerFactory.getHandler(cmd);
+                                handler.process(event);
+                            } catch (Exception e) {
+                                event.reply("An error occurred while processing the command.").setEphemeral(true).queue();
+                                System.out.println(e.getMessage());
+                            }
                         },
                         () -> event.reply("Slash command not mapped, try another one!").setEphemeral(true).queue()
                 );

@@ -1,16 +1,14 @@
 package br.com.baba.tibia_analyzer.discord.dto;
 
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class AdjustmentDTO {
-    String from;
-    String to;
-    long amount;
-
-    public AdjustmentDTO(String from, String to, long amount) {
-        this.from = from;
-        this.to = to;
-        this.amount = amount;
-    }
+    private String from;
+    private String to;
+    private long amount;
 }

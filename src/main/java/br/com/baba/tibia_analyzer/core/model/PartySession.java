@@ -2,9 +2,8 @@ package br.com.baba.tibia_analyzer.core.model;
 
 import br.com.baba.tibia_analyzer.discord.dto.PartyHuntAnalyzerDTO;
 import jakarta.persistence.*;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +11,7 @@ import java.util.UUID;
 
 @Entity
 @NoArgsConstructor
-@Getter
-@Setter
+@Data
 public class PartySession {
 
     @Id

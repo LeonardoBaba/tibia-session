@@ -14,7 +14,10 @@ public class PartyHuntHandler implements ModalHandler {
 
     @Override
     public void process(ModalInteractionEvent event) {
+        event.deferReply().queue();
+        
         String input = event.getValue(InputEnum.SESSION_INPUT.getId()).getAsString();
-        event.reply(partyHuntService.processSession(input)).queue();
+
+        event.getHook().sendMessage(partyHuntService.processSession(input)).queue();
     }
 }

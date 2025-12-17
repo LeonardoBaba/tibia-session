@@ -1,13 +1,15 @@
 package br.com.baba.tibia_analyzer.discord.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Setter
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class PartyHuntAnalyzerDTO {
     private String startTime;
     private String endTime;

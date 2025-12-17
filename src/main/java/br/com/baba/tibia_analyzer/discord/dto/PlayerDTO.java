@@ -1,10 +1,12 @@
 package br.com.baba.tibia_analyzer.discord.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
-@Setter
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class PlayerDTO {
     private String name;
     private long loot;

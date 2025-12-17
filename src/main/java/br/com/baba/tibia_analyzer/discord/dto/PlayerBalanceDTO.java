@@ -1,16 +1,13 @@
 package br.com.baba.tibia_analyzer.discord.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
-@Setter
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class PlayerBalanceDTO {
-    String name;
-    long balance;
-
-    public PlayerBalanceDTO(String name, long balance) {
-        this.name = name;
-        this.balance = balance;
-    }
+    private String name;
+    private long balance;
 }

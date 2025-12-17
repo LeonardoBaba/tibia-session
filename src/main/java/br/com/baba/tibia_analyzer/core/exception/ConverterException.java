@@ -1,4 +1,4 @@
-package br.com.baba.tibia_analyzer.discord.exception;
+package br.com.baba.tibia_analyzer.core.exception;
 
 public class ConverterException extends RuntimeException {
 
