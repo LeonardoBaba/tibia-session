@@ -1,26 +1,22 @@
 package br.com.baba.tibia_analyzer.discord.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
 import java.util.List;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class PartyHuntAnalyzerDTO {
-    private String startTime;
-    private String endTime;
-    private String sessionDuration;
-    private long loot;
-    private long supplies;
-    private long balance;
-    private List<PlayerDTO> players = new ArrayList<>();
-    private String processedMessage;
+public record PartyHuntAnalyzerDTO(
+        String startTime,
+        String endTime,
+        String sessionDuration,
+        long loot,
+        long supplies,
+        long balance,
+        List<PlayerDTO> players,
+        String processedMessage
+) {
+    public PartyHuntAnalyzerDTO(String startTime, String endTime, String sessionDuration, long loot, long supplies, long balance, List<PlayerDTO> players) {
+        this(startTime, endTime, sessionDuration, loot, supplies, balance, players, null);
+    }
 
-    public void addPlayer(PlayerDTO player) {
-        this.players.add(player);
+    public PartyHuntAnalyzerDTO(PartyHuntAnalyzerDTO original, String processedMessage) {
+        this(original.startTime(), original.endTime(), original.sessionDuration(), original.loot(), original.supplies(), original.balance(), original.players(), processedMessage);
     }
 }

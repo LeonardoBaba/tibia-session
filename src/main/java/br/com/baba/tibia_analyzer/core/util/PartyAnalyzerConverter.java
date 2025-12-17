@@ -3,40 +3,41 @@ package br.com.baba.tibia_analyzer.core.util;
 import br.com.baba.tibia_analyzer.discord.dto.PartyHuntAnalyzerDTO;
 import br.com.baba.tibia_analyzer.discord.dto.PlayerDTO;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PartyAnalyzerConverter {
 
     public static PartyHuntAnalyzerDTO getAnalyzer(String input) {
-        PartyHuntAnalyzerDTO session = new PartyHuntAnalyzerDTO();
- 
         String normalizedInput = input.replaceAll("\\s*\\n\\s*", " ").trim();
 
-        session.setStartTime(extractValue(normalizedInput, "From (.*?),"));
-        session.setEndTime(extractValue(normalizedInput, "to (.*?) Session:"));
-        session.setSessionDuration(extractValue(normalizedInput, "Session: (.*?) Loot Type:"));
-        session.setLoot(parseLongValue(extractValue(normalizedInput, "Loot: ([\\d,]+)")));
-        session.setSupplies(parseLongValue(extractValue(normalizedInput, "Supplies: ([\\d,]+)")));
-        session.setBalance(parseLongValue(extractValue(normalizedInput, "Balance: (-?[\\d,]+)")));
+        String startTime = extractValue(normalizedInput, "From (.*?),");
+        String endTime = extractValue(normalizedInput, "to (.*?) Session:");
+        String sessionDuration = extractValue(normalizedInput, "Session: (.*?) Loot Type:");
+        long loot = parseLongValue(extractValue(normalizedInput, "Loot: ([\\d,]+)"));
+        long supplies = parseLongValue(extractValue(normalizedInput, "Supplies: ([\\d,]+)"));
+        long balance = parseLongValue(extractValue(normalizedInput, "Balance: (-?[\\d,]+)"));
 
         String playerRegex = "([A-Za-z ()]+)\\s*Loot:\\s*([\\d,]+)\\s*Supplies:\\s*([\\d,]+)\\s*Balance:\\s*(-?[\\d,]+)\\s*Damage:\\s*([\\d,]+)\\s*Healing:\\s*([\\d,]+)";
         Pattern playerPattern = Pattern.compile(playerRegex);
         Matcher playerMatcher = playerPattern.matcher(normalizedInput);
 
-        while (playerMatcher.find()) {
-            PlayerDTO player = new PlayerDTO();
-            player.setName(playerMatcher.group(1).replace("(Leader)", "").trim());
-            player.setLoot(parseLongValue(playerMatcher.group(2)));
-            player.setSupplies(parseLongValue(playerMatcher.group(3)));
-            player.setBalance(parseLongValue(playerMatcher.group(4)));
-            player.setDamage(parseLongValue(playerMatcher.group(5)));
-            player.setHealing(parseLongValue(playerMatcher.group(6)));
+        List<PlayerDTO> players = new ArrayList<>();
 
-            session.addPlayer(player);
+        while (playerMatcher.find()) {
+            String name = playerMatcher.group(1).replace("(Leader)", "").trim();
+            long pLoot = parseLongValue(playerMatcher.group(2));
+            long pSupplies = parseLongValue(playerMatcher.group(3));
+            long pBalance = parseLongValue(playerMatcher.group(4));
+            long pDamage = parseLongValue(playerMatcher.group(5));
+            long pHealing = parseLongValue(playerMatcher.group(6));
+
+            players.add(new PlayerDTO(name, pLoot, pSupplies, pBalance, pDamage, pHealing));
         }
 
-        return session;
+        return new PartyHuntAnalyzerDTO(startTime, endTime, sessionDuration, loot, supplies, balance, players);
     }
 
     private static long parseLongValue(String value) {

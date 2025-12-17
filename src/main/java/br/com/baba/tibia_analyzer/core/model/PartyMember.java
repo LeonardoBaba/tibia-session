@@ -27,11 +27,11 @@ public class PartyMember {
     private long healing;
 
     public PartyMember(PlayerDTO playerDTO) {
-        this.name=playerDTO.getName();
-        this.loot=playerDTO.getLoot();
-        this.supplies=playerDTO.getSupplies();
-        this.balance=playerDTO.getBalance();
-        this.damage=playerDTO.getDamage();
-        this.healing=playerDTO.getHealing();
+        this.name=playerDTO.name();
+        this.loot=playerDTO.loot();
+        this.supplies=playerDTO.supplies();
+        this.balance=playerDTO.balance();
+        this.damage=playerDTO.damage();
+        this.healing=playerDTO.healing();
     }
 }

@@ -9,13 +9,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PartyHuntSplitter {
-    public static void split(PartyHuntAnalyzerDTO analyzerDTO) {
+    public static PartyHuntAnalyzerDTO split(PartyHuntAnalyzerDTO analyzerDTO) {
         long totalLoot = 0;
         long totalSupplies = 0;
 
-        for (PlayerDTO player : analyzerDTO.getPlayers()) {
-            totalLoot += player.getLoot();
-            totalSupplies += player.getSupplies();
+        for (PlayerDTO player : analyzerDTO.players()) {
+            totalLoot += player.loot();
+            totalSupplies += player.supplies();
         }
 
         StringBuilder result = new StringBuilder();
@@ -25,20 +25,20 @@ public class PartyHuntSplitter {
         long netProfit = totalLoot - totalSupplies;
         result.append("Total: ").append(netProfit).append("\n\n");
 
-        int totalPlayers = analyzerDTO.getPlayers().size();
+        int totalPlayers = analyzerDTO.players().size();
         long equalShare = netProfit / totalPlayers;
 
-        List<AdjustmentDTO> adjustments = calculateAdjustments(analyzerDTO.getPlayers(), equalShare);
+        List<AdjustmentDTO> adjustments = calculateAdjustments(analyzerDTO.players(), equalShare);
         String player = "";
         for (AdjustmentDTO adjustment : adjustments) {
-            if (!player.equals(adjustment.getFrom())) {
-                result.append(adjustment.getFrom()).append(System.lineSeparator());
-                player = adjustment.getFrom();
+            if (!player.equals(adjustment.from())) {
+                result.append(adjustment.from()).append(System.lineSeparator());
+                player = adjustment.from();
             }
-            result.append("transfer ").append(adjustment.getAmount()).append(" to ").append(adjustment.getTo()).append(System.lineSeparator());
+            result.append("transfer ").append(adjustment.amount()).append(" to ").append(adjustment.to()).append(System.lineSeparator());
         }
 
-        analyzerDTO.setProcessedMessage(result.toString());
+        return new PartyHuntAnalyzerDTO(analyzerDTO, result.toString());
     }
 
     private static List<AdjustmentDTO> calculateAdjustments(List<PlayerDTO> players, long equalShare) {
@@ -46,25 +46,28 @@ public class PartyHuntSplitter {
 
         List<PlayerBalanceDTO> balances = new ArrayList<>();
         for (PlayerDTO player : players) {
-            long difference = equalShare - player.getBalance();
-            balances.add(new PlayerBalanceDTO(player.getName(), difference));
+            long difference = equalShare - player.balance();
+            balances.add(new PlayerBalanceDTO(player.name(), difference));
         }
 
-        balances.sort((a, b) -> Long.compare(a.getBalance(), b.getBalance()));
+        balances.sort((a, b) -> Long.compare(a.balance(), b.balance()));
         int i = 0, j = balances.size() - 1;
 
         while (i < j) {
             PlayerBalanceDTO debtor = balances.get(i);
             PlayerBalanceDTO creditor = balances.get(j);
 
-            long transfer = Math.min(-debtor.getBalance(), creditor.getBalance());
-            adjustments.add(new AdjustmentDTO(debtor.getName(), creditor.getName(), transfer));
+            long transfer = Math.min(-debtor.balance(), creditor.balance());
+            adjustments.add(new AdjustmentDTO(debtor.name(), creditor.name(), transfer));
 
-            debtor.setBalance(debtor.getBalance() + transfer);
-            creditor.setBalance(creditor.getBalance() - transfer);
+            long newDebtorBalance = debtor.balance() + transfer;
+            long newCreditorBalance = creditor.balance() - transfer;
 
-            if (debtor.getBalance() == 0) i++;
-            if (creditor.getBalance() == 0) j--;
+            balances.set(i, new PlayerBalanceDTO(debtor.name(), newDebtorBalance));
+            balances.set(j, new PlayerBalanceDTO(creditor.name(), newCreditorBalance));
+
+            if (newDebtorBalance == 0) i++;
+            if (newCreditorBalance == 0) j--;
         }
 
         return adjustments;

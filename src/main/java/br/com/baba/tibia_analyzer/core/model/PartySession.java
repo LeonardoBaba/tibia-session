@@ -33,15 +33,15 @@ public class PartySession {
 
 
     public PartySession(PartyHuntAnalyzerDTO analyzerDTO, String inputSession) {
-        this.startTime = analyzerDTO.getStartTime();
-        this.endTime = analyzerDTO.getEndTime();
-        this.sessionDuration = analyzerDTO.getSessionDuration();
-        this.loot = analyzerDTO.getLoot();
-        this.supplies = analyzerDTO.getSupplies();
-        this.balance = analyzerDTO.getBalance();
+        this.startTime = analyzerDTO.startTime();
+        this.endTime = analyzerDTO.endTime();
+        this.sessionDuration = analyzerDTO.sessionDuration();
+        this.loot = analyzerDTO.loot();
+        this.supplies = analyzerDTO.supplies();
+        this.balance = analyzerDTO.balance();
         this.inputSession = inputSession;
-        this.processedMessage = analyzerDTO.getProcessedMessage();
-        analyzerDTO.getPlayers().forEach(player -> {
+        this.processedMessage = analyzerDTO.processedMessage();
+        analyzerDTO.players().forEach(player -> {
             this.partyMembers.add(new PartyMember(player));
         });
     }

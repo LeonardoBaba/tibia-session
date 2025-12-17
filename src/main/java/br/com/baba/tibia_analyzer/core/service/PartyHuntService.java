@@ -19,6 +19,6 @@ public class PartyHuntService {
         PartyHuntAnalyzerDTO analyzerDTO = PartyAnalyzerConverter.getAnalyzer(input);
         PartyHuntSplitter.split(analyzerDTO);
         dao.save(new PartySession(analyzerDTO, input));
-        return analyzerDTO.getProcessedMessage();
+        return analyzerDTO.processedMessage();
     }
 }
