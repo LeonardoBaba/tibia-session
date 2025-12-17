@@ -9,6 +9,8 @@ import br.com.baba.tibia_analyzer.core.util.PartyHuntSplitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class PartyHuntService {
 
@@ -16,9 +18,8 @@ public class PartyHuntService {
     private PartySessionDAO dao;
 
     public String processSession(String input) throws ConverterException {
-        PartyHuntAnalyzerDTO analyzerDTO = PartyAnalyzerConverter.getAnalyzer(input);
-        PartyHuntSplitter.split(analyzerDTO);
+        PartyHuntAnalyzerDTO analyzerDTO = PartyHuntSplitter.split(PartyAnalyzerConverter.getAnalyzer(input));
         dao.save(new PartySession(analyzerDTO, input));
-        return analyzerDTO.processedMessage();
+        return Optional.ofNullable(analyzerDTO.processedMessage()).orElse("Error processing session");
     }
 }
