@@ -1,15 +1,17 @@
 package br.com.baba.tibia_analyzer.core.util;
 
-import br.com.baba.tibia_analyzer.discord.dto.AdjustmentDTO;
-import br.com.baba.tibia_analyzer.discord.dto.PartyHuntAnalyzerDTO;
-import br.com.baba.tibia_analyzer.discord.dto.PlayerBalanceDTO;
-import br.com.baba.tibia_analyzer.discord.dto.PlayerDTO;
+import br.com.baba.tibia_analyzer.core.dto.AdjustmentDTO;
+import br.com.baba.tibia_analyzer.core.dto.PartyHuntAnalyzerDTO;
+import br.com.baba.tibia_analyzer.core.dto.PlayerBalanceDTO;
+import br.com.baba.tibia_analyzer.core.dto.PlayerDTO;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class PartyHuntSplitter {
-    public static PartyHuntAnalyzerDTO split(PartyHuntAnalyzerDTO analyzerDTO) {
+    public PartyHuntAnalyzerDTO split(PartyHuntAnalyzerDTO analyzerDTO) {
         long totalLoot = 0;
         long totalSupplies = 0;
 
@@ -41,7 +43,7 @@ public class PartyHuntSplitter {
         return new PartyHuntAnalyzerDTO(analyzerDTO, result.toString());
     }
 
-    private static List<AdjustmentDTO> calculateAdjustments(List<PlayerDTO> players, long equalShare) {
+    private List<AdjustmentDTO> calculateAdjustments(List<PlayerDTO> players, long equalShare) {
         List<AdjustmentDTO> adjustments = new ArrayList<>();
 
         List<PlayerBalanceDTO> balances = new ArrayList<>();

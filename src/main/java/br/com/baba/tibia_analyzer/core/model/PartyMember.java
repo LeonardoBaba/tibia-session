@@ -1,6 +1,6 @@
 package br.com.baba.tibia_analyzer.core.model;
 
-import br.com.baba.tibia_analyzer.discord.dto.PlayerDTO;
+import br.com.baba.tibia_analyzer.core.dto.PlayerDTO;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

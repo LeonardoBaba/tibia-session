@@ -1,16 +1,18 @@
 package br.com.baba.tibia_analyzer.core.util;
 
-import br.com.baba.tibia_analyzer.discord.dto.PartyHuntAnalyzerDTO;
-import br.com.baba.tibia_analyzer.discord.dto.PlayerDTO;
+import br.com.baba.tibia_analyzer.core.dto.PartyHuntAnalyzerDTO;
+import br.com.baba.tibia_analyzer.core.dto.PlayerDTO;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Component
 public class PartyAnalyzerConverter {
 
-    public static PartyHuntAnalyzerDTO getAnalyzer(String input) {
+    public PartyHuntAnalyzerDTO getAnalyzer(String input) {
         String normalizedInput = input.replaceAll("\\s*\\n\\s*", " ").trim();
 
         String startTime = extractValue(normalizedInput, "From (.*?),");
@@ -40,11 +42,11 @@ public class PartyAnalyzerConverter {
         return new PartyHuntAnalyzerDTO(startTime, endTime, sessionDuration, loot, supplies, balance, players);
     }
 
-    private static long parseLongValue(String value) {
+    private long parseLongValue(String value) {
         return Long.parseLong(value.replace(",", ""));
     }
 
-    private static String extractValue(String input, String regex) {
+    private String extractValue(String input, String regex) {
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(input);
         if (matcher.find()) {

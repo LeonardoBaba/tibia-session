@@ -1,4 +1,4 @@
-package br.com.baba.tibia_analyzer.discord.dto;
+package br.com.baba.tibia_analyzer.core.dto;
 
 import java.util.List;
 

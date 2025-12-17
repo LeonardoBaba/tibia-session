@@ -1,6 +1,6 @@
 package br.com.baba.tibia_analyzer.core.model;
 
-import br.com.baba.tibia_analyzer.discord.dto.PartyHuntAnalyzerDTO;
+import br.com.baba.tibia_analyzer.core.dto.PartyHuntAnalyzerDTO;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
