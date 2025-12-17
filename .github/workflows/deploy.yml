@@ -36,21 +36,68 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy na VPS via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: root
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            mkdir -p /root/analyzer
-            cd /root/analyzer
-            
-            echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" > .env
-            echo "ANALYZER_DATABASE_USER=${{ secrets.DB_USER }}" >> .env
-            echo "ANALYZER_DATABASE_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-            echo "ANALYZER_DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" >> .env
-            
-            curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -o docker-compose.yml https://raw.githubusercontent.com/${{ github.repository }}/main/docker-compose.yml
-            
-            docker compose pull
-            docker compose up -d
+      - uses: appleboy/ssh-action@v1.0.3
+      - with:
+      - host: ${{ secrets.VPS_HOST }}
+      - username: root
+      - key: ${{ secrets.VPS_SSH_KEY }}
+      - script: |
+      - mkdir -p /root/analyzer
+      - cd /root/analyzer
+
+      - # 1. Cria o arquivo de variáveis (.env) com os segredos
+      - echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" > .env
+      - echo "ANALYZER_DATABASE_USER=${{ secrets.DB_USER }}" >> .env
+      - echo "ANALYZER_DATABASE_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+      - echo "ANALYZER_DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" >> .env
+
+      - # 2. Cria o docker-compose.yml DIRETAMENTE aqui (sem curl)
+      - # O 'EOF' entre aspas simples garante que o Linux não tente substituir as variáveis agora
+      - # As variáveis serão lidas pelo Docker Compose a partir do .env criado acima
+      - cat <<'EOF' > docker-compose.yml
+      - version: '3.8'
+
+      - services:
+      - app:
+      - image: ${DOCKER_USERNAME}/analyzer:latest
+      - container_name: analyzer-app
+      - restart: always
+      - ports:
+      - "15600:15600"
+      - environment:
+      - ANALYZER_SERVER_PORT=15600
+      - ANALYZER_DATABASE_CONNECTION=jdbc:postgresql://db:5432/analyzer
+      - ANALYZER_DATABASE_USER=${ANALYZER_DATABASE_USER}
+      - ANALYZER_DATABASE_PASSWORD=${ANALYZER_DATABASE_PASSWORD}
+      - ANALYZER_DISCORD_TOKEN=${ANALYZER_DISCORD_TOKEN}
+      - depends_on:
+      - db
+      - networks:
+      - analyzer-network
+
+      - db:
+      - image: postgres:16-alpine
+      - container_name: analyzer-db
+      - restart: always
+      - environment:
+      - POSTGRES_DB: analyzer
+      - POSTGRES_USER: ${ANALYZER_DATABASE_USER}
+      - POSTGRES_PASSWORD: ${ANALYZER_DATABASE_PASSWORD}
+      - volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ports:
+      - "5432:5432"
+      - networks:
+      - analyzer-network
+
+      - volumes:
+      - postgres_data:
+
+      - networks:
+      - analyzer-network:
+      - driver: bridge
+      - EOF
+
+      - # 3. Atualiza e sobe os containers
+      - docker compose pull
+      - docker compose up -d
