@@ -1,4 +1,4 @@
-package br.com.baba.tibia_analyzer.discord.util;
+package br.com.baba.tibia_analyzer.core.util;
 
 import br.com.baba.tibia_analyzer.discord.dto.AdjustmentDTO;
 import br.com.baba.tibia_analyzer.discord.dto.PartyHuntAnalyzerDTO;
@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PartyHuntSplitter {
-    public static String split(PartyHuntAnalyzerDTO analyzerDTO) {
+    public static void split(PartyHuntAnalyzerDTO analyzerDTO) {
         long totalLoot = 0;
         long totalSupplies = 0;
 
@@ -38,7 +38,7 @@ public class PartyHuntSplitter {
             result.append("transfer ").append(adjustment.getAmount()).append(" to ").append(adjustment.getTo()).append(System.lineSeparator());
         }
 
-        return result.toString();
+        analyzerDTO.setProcessedMessage(result.toString());
     }
 
     private static List<AdjustmentDTO> calculateAdjustments(List<PlayerDTO> players, long equalShare) {

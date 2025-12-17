@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>br.com.baba</groupId>
-	<artifactId>tibia-analyzer</artifactId>
+	<artifactId>analyzer</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>tibia-analyzer</name>
 	<description>Demo project for Spring Boot</description>
@@ -65,7 +65,7 @@
 		<dependency>
 			<groupId>net.dv8tion</groupId>
 			<artifactId>JDA</artifactId>
-			<version>5.3.1</version> <!-- replace $version with the latest version -->
+			<version>5.3.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>club.minnced</groupId>

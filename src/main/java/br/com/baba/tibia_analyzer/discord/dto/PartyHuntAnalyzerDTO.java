@@ -16,6 +16,7 @@ public class PartyHuntAnalyzerDTO {
     private long supplies;
     private long balance;
     private List<PlayerDTO> players = new ArrayList<>();
+    private String processedMessage;
 
     public void addPlayer(PlayerDTO player) {
         this.players.add(player);

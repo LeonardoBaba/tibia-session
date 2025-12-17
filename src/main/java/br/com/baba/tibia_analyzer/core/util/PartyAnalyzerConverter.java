@@ -1,4 +1,4 @@
-package br.com.baba.tibia_analyzer.discord.util;
+package br.com.baba.tibia_analyzer.core.util;
 
 import br.com.baba.tibia_analyzer.discord.dto.PartyHuntAnalyzerDTO;
 import br.com.baba.tibia_analyzer.discord.dto.PlayerDTO;
