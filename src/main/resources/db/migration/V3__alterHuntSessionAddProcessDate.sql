@@ -1,0 +1,1 @@
+ALTER TABLE party_session ADD COLUMN process_date TIMESTAMP;

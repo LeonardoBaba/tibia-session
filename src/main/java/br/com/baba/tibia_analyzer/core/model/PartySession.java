@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -26,6 +27,7 @@ public class PartySession {
     private long balance;
     private String inputSession;
     private String processedMessage;
+    private Date processDate;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "party_session_id")
@@ -41,6 +43,7 @@ public class PartySession {
         this.balance = analyzerDTO.balance();
         this.inputSession = inputSession;
         this.processedMessage = analyzerDTO.processedMessage();
+        this.processDate = new Date();
         analyzerDTO.players().forEach(player -> {
             this.partyMembers.add(new PartyMember(player));
         });
