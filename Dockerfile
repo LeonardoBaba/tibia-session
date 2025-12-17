@@ -4,8 +4,15 @@ WORKDIR /app
 
 # Copia apenas os arquivos de dependência primeiro para aproveitar o cache do Docker
 COPY .mvn/ .mvn
+# Copia mvnw e pom.xml
 COPY mvnw pom.xml ./
-# Baixa as dependências (isso acelera builds futuros se o pom.xml não mudar)
+
+# --- ADICIONE ESTA LINHA ABAIXO ---
+# Dá permissão de execução para o script mvnw
+RUN chmod +x mvnw
+# ----------------------------------
+
+# Agora pode rodar sem erro
 RUN ./mvnw dependency:go-offline
 
 # Copia o código fonte e compila
