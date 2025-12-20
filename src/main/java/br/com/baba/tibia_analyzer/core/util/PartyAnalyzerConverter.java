@@ -15,7 +15,7 @@ public class PartyAnalyzerConverter {
     public PartyHuntAnalyzerDTO getAnalyzer(String input) {
         String normalizedInput = input.replaceAll("\\s*\\n\\s*", " ").trim();
 
-        String startTime = extractValue(normalizedInput, "From (.*?),");
+        String startTime = extractValue(normalizedInput, "From (.*?)(?:,)? to");
         String endTime = extractValue(normalizedInput, "to (.*?) Session:");
         String sessionDuration = extractValue(normalizedInput, "Session: (.*?) Loot Type:");
         long loot = parseLongValue(extractValue(normalizedInput, "Loot: ([\\d,]+)"));
