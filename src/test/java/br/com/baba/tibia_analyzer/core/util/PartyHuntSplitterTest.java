@@ -1,7 +1,10 @@
 package br.com.baba.tibia_analyzer.core.util;
 
+import br.com.baba.tibia_analyzer.core.dto.AdjustmentDTO;
 import br.com.baba.tibia_analyzer.core.dto.PartyHuntAnalyzerDTO;
 import br.com.baba.tibia_analyzer.core.dto.PlayerDTO;
+import br.com.baba.tibia_analyzer.core.dto.PlayerStatDTO;
+import br.com.baba.tibia_analyzer.core.dto.SessionResultDTO;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -20,62 +23,84 @@ class PartyHuntSplitterTest {
         PlayerDTO druid = new PlayerDTO("Druid", 500, 500, 0, 0, 0);
 
         PartyHuntAnalyzerDTO inputDTO = new PartyHuntAnalyzerDTO(
-                "start", "end", "1h", 2000, 1000, 1000,
-                List.of(knight, druid), null
+                "start", "end", "01:00h", 2000, 1000, 1000, List.of(knight, druid)
         );
 
         // Act
-        PartyHuntAnalyzerDTO resultDTO = splitter.split(inputDTO);
+        SessionResultDTO result = splitter.split(inputDTO);
 
         // Assert
-        String processedMessage = resultDTO.processedMessage();
-        Assertions.assertNotNull(processedMessage);
+        Assertions.assertEquals(2, result.memberCount());
+        Assertions.assertEquals(1000, result.balance());
+        Assertions.assertEquals(500, result.individualBalance());
+        // Loot total 2000 dividido por 1h de sessão.
+        Assertions.assertEquals(2000, result.lootPerHour());
 
-        // Verifica totais
-        Assertions.assertTrue(processedMessage.contains("Total Loot: 2000"));
-        Assertions.assertTrue(processedMessage.contains("Total Supplies: 1000"));
-        Assertions.assertTrue(processedMessage.contains("Total: 1000"));
-
-        // Verifica transferência
-        // O Knight (saldo 1000) excede a média (500) em 500.
-        // O Druid (saldo 0) está abaixo da média (500) em 500.
-        // Knight transfere 500 para Druid.
-
-        Assertions.assertTrue(processedMessage.contains("Knight"));
-        Assertions.assertTrue(processedMessage.contains("transfer 500 to Druid"));
+        Assertions.assertEquals(1, result.transfers().size());
+        AdjustmentDTO transfer = result.transfers().get(0);
+        Assertions.assertEquals("Knight", transfer.from());
+        Assertions.assertEquals("Druid", transfer.to());
+        Assertions.assertEquals(500, transfer.amount());
     }
 
     @Test
     void shouldCalculateSplitWhenEveryoneHasLoss() {
         // Arrange
-        // Cenário: Todos com prejuízo (Waste).
-        // Knight: Loot 0, Supplies 1000, Balance -1000.
-        // Druid: Loot 0, Supplies 2000, Balance -2000.
-        // Total Balance: -3000. Média: -1500.
-        // Knight perdeu 1000 (melhor que a média de -1500), então ele "lucrou" 500 em relação à média.
-        // Druid perdeu 2000 (pior que a média de -1500), então ele deve receber 500 para aliviar o prejuízo.
-        
+        // Cenário: Todos com prejuízo. Total Balance: -3000. Média: -1500.
+        // Knight perdeu 1000 (acima da média), Druid perdeu 2000 (abaixo da média).
+        // Knight transfere 500 para o Druid para ambos ficarem com -1500.
         PlayerDTO knight = new PlayerDTO("Knight", 0, 1000, -1000, 0, 0);
         PlayerDTO druid = new PlayerDTO("Druid", 0, 2000, -2000, 0, 0);
 
         PartyHuntAnalyzerDTO inputDTO = new PartyHuntAnalyzerDTO(
-                "start", "end", "1h", 0, 3000, -3000,
-                List.of(knight, druid), null
+                "start", "end", "01:00h", 0, 3000, -3000, List.of(knight, druid)
         );
 
         // Act
-        PartyHuntAnalyzerDTO resultDTO = splitter.split(inputDTO);
+        SessionResultDTO result = splitter.split(inputDTO);
 
         // Assert
-        String processedMessage = resultDTO.processedMessage();
-        Assertions.assertNotNull(processedMessage);
+        Assertions.assertEquals(-3000, result.balance());
+        Assertions.assertEquals(-1500, result.individualBalance());
+        Assertions.assertEquals(0, result.lootPerHour());
 
-        Assertions.assertTrue(processedMessage.contains("Total Loot: 0"));
-        Assertions.assertTrue(processedMessage.contains("Total Supplies: 3000"));
-        Assertions.assertTrue(processedMessage.contains("Total: -3000"));
+        Assertions.assertEquals(1, result.transfers().size());
+        AdjustmentDTO transfer = result.transfers().get(0);
+        Assertions.assertEquals("Knight", transfer.from());
+        Assertions.assertEquals("Druid", transfer.to());
+        Assertions.assertEquals(500, transfer.amount());
+    }
 
-        // Knight transfere 500 para o Druid para que ambos fiquem com -1500 de saldo final.
-        Assertions.assertTrue(processedMessage.contains("Knight"));
-        Assertions.assertTrue(processedMessage.contains("transfer 500 to Druid"));
+    @Test
+    void shouldRankDamageAndHealingByPercentage() {
+        // Arrange
+        // Dano total 10000: A 75%, B 25%. Cura total 10000: A 20%, B 80%.
+        PlayerDTO playerA = new PlayerDTO("A", 1000, 0, 1000, 7500, 2000);
+        PlayerDTO playerB = new PlayerDTO("B", 0, 0, 0, 2500, 8000);
+
+        PartyHuntAnalyzerDTO inputDTO = new PartyHuntAnalyzerDTO(
+                "start", "end", "02:00h", 1000, 0, 1000, List.of(playerA, playerB)
+        );
+
+        // Act
+        SessionResultDTO result = splitter.split(inputDTO);
+
+        // Assert
+        // Loot total 1000 dividido por 2h de sessão.
+        Assertions.assertEquals(500, result.lootPerHour());
+
+        // Dano ordenado do maior para o menor.
+        List<PlayerStatDTO> damage = result.damage();
+        Assertions.assertEquals("A", damage.get(0).name());
+        Assertions.assertEquals(75.0, damage.get(0).percentage(), 0.001);
+        Assertions.assertEquals("B", damage.get(1).name());
+        Assertions.assertEquals(25.0, damage.get(1).percentage(), 0.001);
+
+        // Cura ordenada do maior para o menor.
+        List<PlayerStatDTO> healing = result.healing();
+        Assertions.assertEquals("B", healing.get(0).name());
+        Assertions.assertEquals(80.0, healing.get(0).percentage(), 0.001);
+        Assertions.assertEquals("A", healing.get(1).name());
+        Assertions.assertEquals(20.0, healing.get(1).percentage(), 0.001);
     }
 }

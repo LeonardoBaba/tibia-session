@@ -9,14 +9,5 @@ public record PartyHuntAnalyzerDTO(
         long loot,
         long supplies,
         long balance,
-        List<PlayerDTO> players,
-        String processedMessage
-) {
-    public PartyHuntAnalyzerDTO(String startTime, String endTime, String sessionDuration, long loot, long supplies, long balance, List<PlayerDTO> players) {
-        this(startTime, endTime, sessionDuration, loot, supplies, balance, players, null);
-    }
-
-    public PartyHuntAnalyzerDTO(PartyHuntAnalyzerDTO original, String processedMessage) {
-        this(original.startTime(), original.endTime(), original.sessionDuration(), original.loot(), original.supplies(), original.balance(), original.players(), processedMessage);
-    }
-}
+        List<PlayerDTO> players
+) {}

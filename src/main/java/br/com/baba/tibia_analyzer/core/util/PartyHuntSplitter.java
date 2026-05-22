@@ -4,51 +4,72 @@ import br.com.baba.tibia_analyzer.core.dto.AdjustmentDTO;
 import br.com.baba.tibia_analyzer.core.dto.PartyHuntAnalyzerDTO;
 import br.com.baba.tibia_analyzer.core.dto.PlayerBalanceDTO;
 import br.com.baba.tibia_analyzer.core.dto.PlayerDTO;
+import br.com.baba.tibia_analyzer.core.dto.PlayerStatDTO;
+import br.com.baba.tibia_analyzer.core.dto.SessionResultDTO;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.function.ToLongFunction;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class PartyHuntSplitter {
-    public PartyHuntAnalyzerDTO split(PartyHuntAnalyzerDTO analyzerDTO) {
-        long totalLoot = 0;
-        long totalSupplies = 0;
 
-        for (PlayerDTO player : analyzerDTO.players()) {
-            totalLoot += player.loot();
-            totalSupplies += player.supplies();
-        }
+    private static final Pattern DURATION_PATTERN = Pattern.compile("(\\d+):(\\d+)");
 
-        StringBuilder result = new StringBuilder();
-        result.append("Total Loot: ").append(totalLoot).append("\n");
-        result.append("Total Supplies: ").append(totalSupplies).append("\n");
+    public SessionResultDTO split(PartyHuntAnalyzerDTO analyzerDTO) {
+        List<PlayerDTO> players = analyzerDTO.players();
+        int memberCount = players.size();
 
-        long netProfit = totalLoot - totalSupplies;
-        result.append("Total: ").append(netProfit).append("\n\n");
+        long totalLoot = players.stream().mapToLong(PlayerDTO::loot).sum();
+        long totalSupplies = players.stream().mapToLong(PlayerDTO::supplies).sum();
+        long balance = totalLoot - totalSupplies;
+        long individualBalance = balance / memberCount;
 
-        int totalPlayers = analyzerDTO.players().size();
-        long equalShare = netProfit / totalPlayers;
+        long lootPerHour = calculateLootPerHour(totalLoot, analyzerDTO.sessionDuration());
+        List<PlayerStatDTO> damage = buildRanking(players, PlayerDTO::damage);
+        List<PlayerStatDTO> healing = buildRanking(players, PlayerDTO::healing);
+        List<AdjustmentDTO> transfers = calculateAdjustments(players, individualBalance);
 
-        List<AdjustmentDTO> adjustments = calculateAdjustments(analyzerDTO.players(), equalShare);
-        String player = "";
-        for (AdjustmentDTO adjustment : adjustments) {
-            if (!player.equals(adjustment.from())) {
-                result.append(adjustment.from()).append(System.lineSeparator());
-                player = adjustment.from();
-            }
-            result.append("transfer ").append(adjustment.amount()).append(" to ").append(adjustment.to()).append(System.lineSeparator());
-        }
-
-        return new PartyHuntAnalyzerDTO(analyzerDTO, result.toString());
+        return new SessionResultDTO(memberCount, balance, individualBalance, lootPerHour,
+                analyzerDTO.sessionDuration(), damage, healing, transfers);
     }
 
-    private List<AdjustmentDTO> calculateAdjustments(List<PlayerDTO> players, long equalShare) {
+    private long calculateLootPerHour(long totalLoot, String sessionDuration) {
+        Matcher matcher = DURATION_PATTERN.matcher(sessionDuration == null ? "" : sessionDuration);
+        if (!matcher.find()) {
+            return 0;
+        }
+        long hours = Long.parseLong(matcher.group(1));
+        long minutes = Long.parseLong(matcher.group(2));
+        double totalHours = hours + minutes / 60.0;
+        if (totalHours == 0) {
+            return 0;
+        }
+        return Math.round(totalLoot / totalHours);
+    }
+
+    private List<PlayerStatDTO> buildRanking(List<PlayerDTO> players, ToLongFunction<PlayerDTO> extractor) {
+        long total = players.stream().mapToLong(extractor).sum();
+        return players.stream()
+                .map(player -> {
+                    long value = extractor.applyAsLong(player);
+                    double percentage = total == 0 ? 0.0 : value * 100.0 / total;
+                    return new PlayerStatDTO(player.name(), value, percentage);
+                })
+                .sorted(Comparator.comparingLong(PlayerStatDTO::value).reversed())
+                .toList();
+    }
+
+    private List<AdjustmentDTO> calculateAdjustments(List<PlayerDTO> players, long individualBalance) {
         List<AdjustmentDTO> adjustments = new ArrayList<>();
 
         List<PlayerBalanceDTO> balances = new ArrayList<>();
         for (PlayerDTO player : players) {
-            long difference = equalShare - player.balance();
+            long difference = individualBalance - player.balance();
             balances.add(new PlayerBalanceDTO(player.name(), difference));
         }
 

@@ -1,6 +1,7 @@
 package br.com.baba.tibia_analyzer.core.model;
 
 import br.com.baba.tibia_analyzer.core.dto.PartyHuntAnalyzerDTO;
+import br.com.baba.tibia_analyzer.core.dto.SessionResultDTO;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,15 +27,17 @@ public class PartySession {
     private long supplies;
     private long balance;
     private String inputSession;
-    private String processedMessage;
     private Date processDate;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "party_session_id")
     private List<PartyMember> partyMembers = new ArrayList<>();
 
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "party_session_id")
+    private List<PartyTransfer> partyTransfers = new ArrayList<>();
 
-    public PartySession(PartyHuntAnalyzerDTO analyzerDTO, String inputSession) {
+    public PartySession(PartyHuntAnalyzerDTO analyzerDTO, SessionResultDTO result, String inputSession) {
         this.startTime = analyzerDTO.startTime();
         this.endTime = analyzerDTO.endTime();
         this.sessionDuration = analyzerDTO.sessionDuration();
@@ -42,10 +45,8 @@ public class PartySession {
         this.supplies = analyzerDTO.supplies();
         this.balance = analyzerDTO.balance();
         this.inputSession = inputSession;
-        this.processedMessage = analyzerDTO.processedMessage();
         this.processDate = new Date();
-        analyzerDTO.players().forEach(player -> {
-            this.partyMembers.add(new PartyMember(player));
-        });
+        analyzerDTO.players().forEach(player -> this.partyMembers.add(new PartyMember(player)));
+        result.transfers().forEach(transfer -> this.partyTransfers.add(new PartyTransfer(transfer)));
     }
 }

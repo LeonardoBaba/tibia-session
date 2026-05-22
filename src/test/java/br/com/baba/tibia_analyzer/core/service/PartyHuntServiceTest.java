@@ -2,6 +2,7 @@ package br.com.baba.tibia_analyzer.core.service;
 
 import br.com.baba.tibia_analyzer.core.dao.PartySessionDAO;
 import br.com.baba.tibia_analyzer.core.dto.PartyHuntAnalyzerDTO;
+import br.com.baba.tibia_analyzer.core.dto.SessionResultDTO;
 import br.com.baba.tibia_analyzer.core.model.PartySession;
 import br.com.baba.tibia_analyzer.core.util.PartyAnalyzerConverter;
 import br.com.baba.tibia_analyzer.core.util.PartyHuntSplitter;
@@ -15,7 +16,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,29 +38,25 @@ class PartyHuntServiceTest {
     void shouldProcessSessionSuccessfully() {
         // Arrange
         String input = "raw input";
-        PartyHuntAnalyzerDTO initialDTO = new PartyHuntAnalyzerDTO(
-                "start", "end", "dur", 0, 0, 0, Collections.emptyList(), null
+        PartyHuntAnalyzerDTO analyzerDTO = new PartyHuntAnalyzerDTO(
+                "start", "end", "01:00h", 0, 0, 0, Collections.emptyList()
         );
-        
-        PartyHuntAnalyzerDTO processedDTO = new PartyHuntAnalyzerDTO(
-                "start", "end", "dur", 0, 0, 0, Collections.emptyList(), "Success Message"
+        SessionResultDTO result = new SessionResultDTO(
+                0, 0, 0, 0, "01:00h",
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList()
         );
 
-        PartySession savedSession = new PartySession(processedDTO, input);
-        savedSession.setProcessedMessage("Success Message");
-
-        when(converter.getAnalyzer(input)).thenReturn(initialDTO);
-        when(splitter.split(initialDTO)).thenReturn(processedDTO);
-        when(dao.save(any(PartySession.class))).thenReturn(savedSession);
+        when(converter.getAnalyzer(input)).thenReturn(analyzerDTO);
+        when(splitter.split(analyzerDTO)).thenReturn(result);
 
         // Act
-        String result = service.processSession(input);
+        SessionResultDTO returned = service.processSession(input);
 
         // Assert
-        Assertions.assertEquals("Success Message", result);
-        
+        Assertions.assertSame(result, returned);
+
         verify(converter).getAnalyzer(input);
-        verify(splitter).split(initialDTO);
+        verify(splitter).split(analyzerDTO);
         verify(dao).save(any(PartySession.class));
     }
 }
