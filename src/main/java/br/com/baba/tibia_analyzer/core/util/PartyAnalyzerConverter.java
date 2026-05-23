@@ -4,6 +4,8 @@ import br.com.baba.tibia_analyzer.core.dto.PartyHuntAnalyzerDTO;
 import br.com.baba.tibia_analyzer.core.dto.PlayerDTO;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -12,11 +14,14 @@ import java.util.regex.Pattern;
 @Component
 public class PartyAnalyzerConverter {
 
+    private static final DateTimeFormatter ANALYZER_DATE_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd, HH:mm:ss");
+
     public PartyHuntAnalyzerDTO getAnalyzer(String input) {
         String normalizedInput = input.replaceAll("\\s*\\n\\s*", " ").trim();
 
-        String startTime = extractValue(normalizedInput, "From (.*?)(?:,)? to");
-        String endTime = extractValue(normalizedInput, "to (.*?) Session:");
+        LocalDateTime startTime = parseDateTime(extractValue(normalizedInput, "From (.*?)(?:,)? to"));
+        LocalDateTime endTime = parseDateTime(extractValue(normalizedInput, "to (.*?) Session:"));
         String sessionDuration = extractValue(normalizedInput, "Session: (.*?) Loot Type:");
         long loot = parseLongValue(extractValue(normalizedInput, "Loot: ([\\d,]+)"));
         long supplies = parseLongValue(extractValue(normalizedInput, "Supplies: ([\\d,]+)"));
@@ -44,6 +49,13 @@ public class PartyAnalyzerConverter {
 
     private long parseLongValue(String value) {
         return Long.parseLong(value.replace(",", ""));
+    }
+
+    private LocalDateTime parseDateTime(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return LocalDateTime.parse(value, ANALYZER_DATE_FORMAT);
     }
 
     private String extractValue(String input, String regex) {

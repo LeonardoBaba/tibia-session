@@ -23,9 +23,16 @@ public class PartyHuntService {
     private PartyHuntSplitter partyHuntSplitter;
 
     public SessionResultDTO processSession(String input) throws ConverterException {
+        return processSession(input, null, null, null);
+    }
+
+    public SessionResultDTO processSession(String input,
+                                           String name,
+                                           String comment,
+                                           String ownerDiscordId) throws ConverterException {
         PartyHuntAnalyzerDTO analyzerDTO = partyHuntAnalyzerConverter.getAnalyzer(input);
         SessionResultDTO result = partyHuntSplitter.split(analyzerDTO);
-        dao.save(new PartySession(analyzerDTO, result, input));
+        dao.save(new PartySession(analyzerDTO, result, input, name, comment, ownerDiscordId));
         return result;
     }
 }

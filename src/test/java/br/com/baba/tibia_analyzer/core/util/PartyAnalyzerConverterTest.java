@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.List;
 
 class PartyAnalyzerConverterTest {
@@ -26,8 +27,8 @@ class PartyAnalyzerConverterTest {
 
         // Assert
         Assertions.assertNotNull(result);
-        Assertions.assertEquals("2025-12-16, 12:13:38", result.startTime());
-        Assertions.assertEquals("2025-12-16, 13:43:29", result.endTime());
+        Assertions.assertEquals(LocalDateTime.of(2025, 12, 16, 12, 13, 38), result.startTime());
+        Assertions.assertEquals(LocalDateTime.of(2025, 12, 16, 13, 43, 29), result.endTime());
         Assertions.assertEquals("01:29h", result.sessionDuration());
         Assertions.assertEquals(3_103_516L, result.loot());
         Assertions.assertEquals(1_450_492L, result.supplies());

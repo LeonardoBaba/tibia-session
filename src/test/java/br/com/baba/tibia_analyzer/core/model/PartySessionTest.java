@@ -8,6 +8,7 @@ import br.com.baba.tibia_analyzer.core.dto.SessionResultDTO;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 class PartySessionTest {
@@ -15,9 +16,11 @@ class PartySessionTest {
     @Test
     void shouldCreatePartySessionFromDTO() {
         // Arrange
+        LocalDateTime start = LocalDateTime.of(2025, 1, 1, 10, 0, 0);
+        LocalDateTime end = LocalDateTime.of(2025, 1, 1, 11, 0, 0);
         PlayerDTO player = new PlayerDTO("Player1", 100, 50, 50, 1000, 500);
         PartyHuntAnalyzerDTO dto = new PartyHuntAnalyzerDTO(
-                "10:00", "11:00", "01:00h", 100, 50, 50, List.of(player)
+                start, end, "01:00h", 100, 50, 50, List.of(player)
         );
         SessionResultDTO result = new SessionResultDTO(
                 1, 50, 50, 100, "01:00h",
@@ -28,11 +31,14 @@ class PartySessionTest {
         String rawInput = "Raw Input String";
 
         // Act
-        PartySession session = new PartySession(dto, result, rawInput);
+        PartySession session = new PartySession(dto, result, rawInput, "Cobra Bastion", "Boss died -1", "123456");
 
         // Assert
-        Assertions.assertEquals("10:00", session.getStartTime());
-        Assertions.assertEquals("11:00", session.getEndTime());
+        Assertions.assertEquals("Cobra Bastion", session.getName());
+        Assertions.assertEquals("Boss died -1", session.getComment());
+        Assertions.assertEquals("123456", session.getOwnerDiscordId());
+        Assertions.assertEquals(start, session.getStartTime());
+        Assertions.assertEquals(end, session.getEndTime());
         Assertions.assertEquals("01:00h", session.getSessionDuration());
         Assertions.assertEquals(100, session.getLoot());
         Assertions.assertEquals(50, session.getSupplies());
@@ -48,5 +54,26 @@ class PartySessionTest {
         Assertions.assertEquals("Player1", transfer.getFromPlayer());
         Assertions.assertEquals("Player2", transfer.getToPlayer());
         Assertions.assertEquals(25, transfer.getAmount());
+    }
+
+    @Test
+    void shouldAllowNullOptionalFields() {
+        // Arrange
+        PartyHuntAnalyzerDTO dto = new PartyHuntAnalyzerDTO(
+                null, null, "00:00h", 0, 0, 0, List.of()
+        );
+        SessionResultDTO result = new SessionResultDTO(
+                0, 0, 0, 0, "00:00h", List.of(), List.of(), List.of()
+        );
+
+        // Act
+        PartySession session = new PartySession(dto, result, "", null, null, null);
+
+        // Assert
+        Assertions.assertNull(session.getName());
+        Assertions.assertNull(session.getComment());
+        Assertions.assertNull(session.getOwnerDiscordId());
+        Assertions.assertNull(session.getStartTime());
+        Assertions.assertNull(session.getEndTime());
     }
 }

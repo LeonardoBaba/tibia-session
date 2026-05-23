@@ -23,7 +23,7 @@ class PartyHuntSplitterTest {
         PlayerDTO druid = new PlayerDTO("Druid", 500, 500, 0, 0, 0);
 
         PartyHuntAnalyzerDTO inputDTO = new PartyHuntAnalyzerDTO(
-                "start", "end", "01:00h", 2000, 1000, 1000, List.of(knight, druid)
+                null, null, "01:00h", 2000, 1000, 1000, List.of(knight, druid)
         );
 
         // Act
@@ -53,7 +53,7 @@ class PartyHuntSplitterTest {
         PlayerDTO druid = new PlayerDTO("Druid", 0, 2000, -2000, 0, 0);
 
         PartyHuntAnalyzerDTO inputDTO = new PartyHuntAnalyzerDTO(
-                "start", "end", "01:00h", 0, 3000, -3000, List.of(knight, druid)
+                null, null, "01:00h", 0, 3000, -3000, List.of(knight, druid)
         );
 
         // Act
@@ -79,7 +79,7 @@ class PartyHuntSplitterTest {
         PlayerDTO playerB = new PlayerDTO("B", 0, 0, 0, 2500, 8000);
 
         PartyHuntAnalyzerDTO inputDTO = new PartyHuntAnalyzerDTO(
-                "start", "end", "02:00h", 1000, 0, 1000, List.of(playerA, playerB)
+                null, null, "02:00h", 1000, 0, 1000, List.of(playerA, playerB)
         );
 
         // Act

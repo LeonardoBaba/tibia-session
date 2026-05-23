@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +21,13 @@ public class PartySession {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private String startTime;
-    private String endTime;
+    private String name;
+    @Column(columnDefinition = "TEXT")
+    private String comment;
+    private String ownerDiscordId;
+
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
     private String sessionDuration;
     private long loot;
     private long supplies;
@@ -37,7 +43,15 @@ public class PartySession {
     @JoinColumn(name = "party_session_id")
     private List<PartyTransfer> partyTransfers = new ArrayList<>();
 
-    public PartySession(PartyHuntAnalyzerDTO analyzerDTO, SessionResultDTO result, String inputSession) {
+    public PartySession(PartyHuntAnalyzerDTO analyzerDTO,
+                        SessionResultDTO result,
+                        String inputSession,
+                        String name,
+                        String comment,
+                        String ownerDiscordId) {
+        this.name = name;
+        this.comment = comment;
+        this.ownerDiscordId = ownerDiscordId;
         this.startTime = analyzerDTO.startTime();
         this.endTime = analyzerDTO.endTime();
         this.sessionDuration = analyzerDTO.sessionDuration();

@@ -22,7 +22,8 @@ public class PartyHuntHandler implements ModalHandler {
         event.deferReply().queue();
 
         String input = event.getValue(InputEnum.SESSION_INPUT.getId()).getAsString();
-        SessionResultDTO result = partyHuntService.processSession(input);
+        String ownerDiscordId = event.getUser().getId();
+        SessionResultDTO result = partyHuntService.processSession(input, null, null, ownerDiscordId);
 
         event.getHook().sendMessageEmbeds(partyHuntEmbedFactory.build(result)).queue();
     }
