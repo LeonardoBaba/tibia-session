@@ -69,9 +69,9 @@ public class PartyHuntEmbedFactory {
 
         byPayer.forEach((payer, payerTransfers) -> {
             String body = payerTransfers.stream()
-                    .map(transfer -> "transfer " + transfer.amount() + " to " + transfer.to())
-                    .collect(Collectors.joining("\n"));
-            embed.addField("Transfers for " + payer, "```\n" + body + "\n```", false);
+                    .map(transfer -> "```\ntransfer " + transfer.amount() + " to " + transfer.to() + "\n```")
+                    .collect(Collectors.joining());
+            embed.addField("Transfers for " + payer, body, false);
         });
     }
 

@@ -86,6 +86,43 @@ class PartyHuntEmbedFactoryTest {
     }
 
     @Test
+    void shouldRenderEachTransferInItsOwnCodeBlock() {
+        // Arrange
+        SessionResultDTO result = new SessionResultDTO(
+                4, 3_805_270, 951_317, 6_735_667, "02:11h",
+                List.of(new PlayerStatDTO("Hikeppo", 100, 34.24)),
+                List.of(new PlayerStatDTO("Volta Mcfish", 200, 54.90)),
+                List.of(
+                        new AdjustmentDTO("Hikeppo", "Archulava", 1767489),
+                        new AdjustmentDTO("Hikeppo", "Luziadas", 1425175),
+                        new AdjustmentDTO("Hikeppo", "Volta Mcfish", 911575)
+                )
+        );
+
+        // Act
+        MessageEmbed embed = factory.build(result);
+
+        // Assert: cada transfer deve estar isolado num bloco ``` próprio,
+        // para que linhas longas (ex.: nomes com espaço) não quebrem ao copiar.
+        MessageEmbed.Field transfers = findField(embed, "Transfers for Hikeppo");
+        String value = transfers.getValue();
+        Assertions.assertEquals(3, countOccurrences(value, "```\ntransfer "));
+        Assertions.assertTrue(value.contains("```\ntransfer 1767489 to Archulava\n```"));
+        Assertions.assertTrue(value.contains("```\ntransfer 1425175 to Luziadas\n```"));
+        Assertions.assertTrue(value.contains("```\ntransfer 911575 to Volta Mcfish\n```"));
+    }
+
+    private int countOccurrences(String haystack, String needle) {
+        int count = 0;
+        int index = 0;
+        while ((index = haystack.indexOf(needle, index)) != -1) {
+            count++;
+            index += needle.length();
+        }
+        return count;
+    }
+
+    @Test
     void shouldRenderPlaceholderWhenThereAreNoTransfers() {
         // Arrange
         SessionResultDTO result = new SessionResultDTO(
