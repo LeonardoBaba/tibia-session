@@ -6,6 +6,8 @@ services:
     image: ${DOCKER_USERNAME}/analyzer:latest
     container_name: analyzer-app
     restart: always
+    # Porta mantida exposta enquanto valida o subdomínio. Pode remover depois
+    # que o https://api.huntanalyzer.lbaba.com.br estiver funcionando.
     ports:
       - "15600:15600"
     environment:
@@ -16,6 +18,23 @@ services:
       - ANALYZER_DISCORD_TOKEN=${ANALYZER_DISCORD_TOKEN}
     depends_on:
       - db
+    networks:
+      - analyzer-network
+
+  # Reverse proxy + HTTPS automático (Let's Encrypt).
+  caddy:
+    image: caddy:2-alpine
+    container_name: analyzer-caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
     networks:
       - analyzer-network
 
@@ -37,6 +56,8 @@ services:
 
 volumes:
   postgres_data:
+  caddy_data:
+  caddy_config:
 
 networks:
   analyzer-network:

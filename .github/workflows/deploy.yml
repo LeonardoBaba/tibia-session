@@ -60,7 +60,7 @@ jobs:
             # O bloco abaixo escreve o conteúdo exato dentro do arquivo na VPS
             cat <<'EOF' > docker-compose.yml
             version: '3.8'
-            
+
             services:
               app:
                 image: ${DOCKER_USERNAME}/analyzer:latest
@@ -78,7 +78,23 @@ jobs:
                   - db
                 networks:
                   - analyzer-network
-            
+
+              caddy:
+                image: caddy:2-alpine
+                container_name: analyzer-caddy
+                restart: always
+                ports:
+                  - "80:80"
+                  - "443:443"
+                volumes:
+                  - ./Caddyfile:/etc/caddy/Caddyfile:ro
+                  - caddy_data:/data
+                  - caddy_config:/config
+                depends_on:
+                  - app
+                networks:
+                  - analyzer-network
+
               db:
                 image: postgres:16-alpine
                 container_name: analyzer-db
@@ -93,15 +109,29 @@ jobs:
                   - "5432:5432"
                 networks:
                   - analyzer-network
-            
+
             volumes:
               postgres_data:
-            
+              caddy_data:
+              caddy_config:
+
             networks:
               analyzer-network:
                 driver: bridge
             EOF
-            
-            # 4. Atualiza a imagem e reinicia os serviços
+
+            # 4. Cria o Caddyfile com o reverse proxy + HTTPS automático
+            cat <<'EOF' > Caddyfile
+            {
+                email leobaba111@gmail.com
+            }
+
+            api.huntanalyzer.lbaba.com.br {
+                encode gzip
+                reverse_proxy app:15600
+            }
+            EOF
+
+            # 5. Atualiza a imagem e reinicia os serviços
             docker compose pull
             docker compose up -d
