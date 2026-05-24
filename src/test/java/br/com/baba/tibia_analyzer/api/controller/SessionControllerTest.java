@@ -1,5 +1,6 @@
 package br.com.baba.tibia_analyzer.api.controller;
 
+import br.com.baba.tibia_analyzer.api.config.WebConfig;
 import br.com.baba.tibia_analyzer.api.dto.SessionFilter;
 import br.com.baba.tibia_analyzer.api.exception.ApiExceptionHandler;
 import br.com.baba.tibia_analyzer.core.dto.PartyHuntAnalyzerDTO;
@@ -35,6 +36,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -42,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(SessionController.class)
-@Import(ApiExceptionHandler.class)
+@Import({ApiExceptionHandler.class, WebConfig.class})
 @TestPropertySource(properties = {
         "ANALYZER_SERVER_PORT=0",
         "ANALYZER_DATABASE_CONNECTION=jdbc:postgresql://localhost/test",
@@ -246,6 +248,35 @@ class SessionControllerTest {
 
         mockMvc.perform(delete("/api/sessions/{id}", id))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldAllowCorsPreflightFromLocalhostFront() throws Exception {
+        mockMvc.perform(options("/api/sessions")
+                        .header("Origin", "http://localhost:4200")
+                        .header("Access-Control-Request-Method", "GET"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:4200"))
+                .andExpect(header().string("Access-Control-Allow-Methods",
+                        org.hamcrest.Matchers.containsString("GET")));
+    }
+
+    @Test
+    void shouldAllowCorsPreflightFromProductionFront() throws Exception {
+        mockMvc.perform(options("/api/sessions")
+                        .header("Origin", "https://huntanalyzer.lbaba.com.br")
+                        .header("Access-Control-Request-Method", "POST"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin",
+                        "https://huntanalyzer.lbaba.com.br"));
+    }
+
+    @Test
+    void shouldRejectCorsPreflightFromUnknownOrigin() throws Exception {
+        mockMvc.perform(options("/api/sessions")
+                        .header("Origin", "https://evil.example.com")
+                        .header("Access-Control-Request-Method", "GET"))
+                .andExpect(status().isForbidden());
     }
 
     private PartySession buildSession() throws Exception {
