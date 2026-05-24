@@ -15,7 +15,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
+import java.util.Optional;
+import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -91,5 +94,42 @@ class PartyHuntServiceTest {
         Assertions.assertEquals("Cobra Bastion", saved.getName());
         Assertions.assertEquals("Boss died -1", saved.getComment());
         Assertions.assertEquals("discord-123", saved.getOwnerDiscordId());
+    }
+
+    @Test
+    void shouldReturnSavedSessionWhenCreatingSession() {
+        // Arrange
+        String input = "raw input";
+        PartyHuntAnalyzerDTO analyzerDTO = new PartyHuntAnalyzerDTO(
+                null, null, "01:00h", 0, 0, 0, Collections.emptyList()
+        );
+        SessionResultDTO result = new SessionResultDTO(
+                0, 0, 0, 0, "01:00h",
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList()
+        );
+        PartySession persisted = new PartySession(analyzerDTO, result, input, "Hunt", "ok", "owner-1");
+
+        when(converter.getAnalyzer(input)).thenReturn(analyzerDTO);
+        when(splitter.split(analyzerDTO)).thenReturn(result);
+        when(dao.save(any(PartySession.class))).thenReturn(persisted);
+
+        // Act
+        PartySession returned = service.createSession(input, "Hunt", "ok", "owner-1");
+
+        // Assert
+        Assertions.assertSame(persisted, returned);
+    }
+
+    @Test
+    void shouldDelegateFindByIdToDao() {
+        UUID id = UUID.randomUUID();
+        PartySession session = new PartySession();
+        when(dao.findById(id)).thenReturn(Optional.of(session));
+
+        Optional<PartySession> result = service.findById(id);
+
+        Assertions.assertTrue(result.isPresent());
+        Assertions.assertSame(session, result.get());
+        verify(dao).findById(id);
     }
 }

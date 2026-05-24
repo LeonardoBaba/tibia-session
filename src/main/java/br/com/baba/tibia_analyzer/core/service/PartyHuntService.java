@@ -3,12 +3,14 @@ package br.com.baba.tibia_analyzer.core.service;
 import br.com.baba.tibia_analyzer.core.dao.PartySessionDAO;
 import br.com.baba.tibia_analyzer.core.dto.PartyHuntAnalyzerDTO;
 import br.com.baba.tibia_analyzer.core.dto.SessionResultDTO;
-import br.com.baba.tibia_analyzer.core.exception.ConverterException;
 import br.com.baba.tibia_analyzer.core.model.PartySession;
 import br.com.baba.tibia_analyzer.core.util.PartyAnalyzerConverter;
 import br.com.baba.tibia_analyzer.core.util.PartyHuntSplitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class PartyHuntService {
@@ -22,17 +24,35 @@ public class PartyHuntService {
     @Autowired
     private PartyHuntSplitter partyHuntSplitter;
 
-    public SessionResultDTO processSession(String input) throws ConverterException {
+    public SessionResultDTO processSession(String input) {
         return processSession(input, null, null, null);
     }
 
     public SessionResultDTO processSession(String input,
                                            String name,
                                            String comment,
-                                           String ownerDiscordId) throws ConverterException {
+                                           String ownerDiscordId) {
+        return persist(input, name, comment, ownerDiscordId).splitterResult();
+    }
+
+    public PartySession createSession(String input,
+                                      String name,
+                                      String comment,
+                                      String ownerDiscordId) {
+        return persist(input, name, comment, ownerDiscordId).saved();
+    }
+
+    public Optional<PartySession> findById(UUID id) {
+        return dao.findById(id);
+    }
+
+    private PersistResult persist(String input, String name, String comment, String ownerDiscordId) {
         PartyHuntAnalyzerDTO analyzerDTO = partyHuntAnalyzerConverter.getAnalyzer(input);
         SessionResultDTO result = partyHuntSplitter.split(analyzerDTO);
-        dao.save(new PartySession(analyzerDTO, result, input, name, comment, ownerDiscordId));
-        return result;
+        PartySession saved = dao.save(
+                new PartySession(analyzerDTO, result, input, name, comment, ownerDiscordId));
+        return new PersistResult(saved, result);
     }
+
+    private record PersistResult(PartySession saved, SessionResultDTO splitterResult) {}
 }
