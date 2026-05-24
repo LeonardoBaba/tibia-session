@@ -1,0 +1,66 @@
+@let s = session();
+<article
+  class="group relative flex flex-col gap-4 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5 transition hover:border-[color:var(--color-border-strong)] hover:bg-[color:var(--color-surface-2)]"
+  [class.ring-2]="selected()"
+  [class.ring-[color:var(--color-accent)]]="selected()"
+>
+  <!-- Top: checkbox + name + date -->
+  <header class="flex items-start gap-3">
+    <button
+      type="button"
+      class="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border border-[color:var(--color-border-strong)] transition hover:border-[color:var(--color-accent)]"
+      [class.bg-[color:var(--color-accent)]]="selected()"
+      [attr.aria-pressed]="selected()"
+      [attr.aria-label]="'Select ' + displayName() + ' for comparison'"
+      (click)="onSelectClick()"
+    >
+      @if (selected()) {
+        <svg viewBox="0 0 16 16" class="h-3 w-3 text-black" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M3 8.5L6.5 12L13 4.5" />
+        </svg>
+      }
+    </button>
+
+    <div class="flex-1">
+      <h3 class="text-base font-semibold leading-tight text-[color:var(--color-text-primary)]">
+        {{ displayName() }}
+      </h3>
+      @if (s.startTime) {
+        <p class="mt-1 text-xs text-[color:var(--color-text-muted)]">
+          {{ s.startTime | date: 'yyyy-MM-dd HH:mm' }}
+        </p>
+      }
+    </div>
+  </header>
+
+  <!-- Total balance -->
+  <div>
+    <p class="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+      Total balance
+    </p>
+    <p class="mt-1 text-2xl font-bold tabular-nums" [class]="balanceClass()">
+      {{ s.balance | signedNumber }} <span class="text-sm font-medium text-[color:var(--color-text-secondary)]">gp</span>
+    </p>
+  </div>
+
+  <!-- Loot / Supplies -->
+  <div class="grid grid-cols-2 gap-2">
+    <div class="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-bg)] px-3 py-2">
+      <p class="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">Loot</p>
+      <p class="mt-0.5 text-base font-semibold tabular-nums">{{ s.loot | compactNumber }}</p>
+    </div>
+    <div class="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-bg)] px-3 py-2">
+      <p class="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">Supplies</p>
+      <p class="mt-0.5 text-base font-semibold tabular-nums text-[color:var(--color-loss)]">
+        -{{ s.supplies | compactNumber }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Comment -->
+  @if (s.comment) {
+    <p class="border-l-2 border-[color:var(--color-border-strong)] pl-3 text-xs italic text-[color:var(--color-text-secondary)]">
+      "{{ s.comment }}"
+    </p>
+  }
+</article>

@@ -1,0 +1,35 @@
+<section class="flex flex-col gap-6">
+  <header>
+    <h1 class="text-3xl font-bold text-[color:var(--color-text-secondary)]">Hunt History</h1>
+    <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
+      Review and analyze past session logs.
+    </p>
+  </header>
+
+  <app-hunt-filters (apply)="onFiltersApplied($event)" (compare)="onCompare()" />
+
+  @if (loading()) {
+    <div class="flex justify-center py-10 text-sm text-[color:var(--color-text-muted)]">
+      Loading sessions…
+    </div>
+  } @else if (error()) {
+    <div class="rounded-md border border-[color:var(--color-loss)] bg-[color:var(--color-loss)]/10 p-4 text-sm text-[color:var(--color-loss)]">
+      {{ error() }}
+    </div>
+  } @else if (sessions().length === 0) {
+    <div class="flex flex-col items-center gap-2 rounded-xl border border-dashed border-[color:var(--color-border)] py-16 text-sm text-[color:var(--color-text-muted)]">
+      <p>Nenhuma sessão encontrada.</p>
+      <p class="text-xs">Importe uma sessão pelo botão "New Import" lá em cima.</p>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      @for (session of sessions(); track session.id) {
+        <app-hunt-card
+          [session]="session"
+          [selected]="isSelected(session.id)"
+          (toggleSelect)="onToggleSelect($event)"
+        />
+      }
+    </div>
+  }
+</section>
