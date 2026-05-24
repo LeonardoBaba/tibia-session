@@ -14,11 +14,21 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import br.com.baba.tibia_analyzer.api.dto.SessionFilter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+
+import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -131,5 +141,24 @@ class PartyHuntServiceTest {
         Assertions.assertTrue(result.isPresent());
         Assertions.assertSame(session, result.get());
         verify(dao).findById(id);
+    }
+
+    @Test
+    void shouldDelegateListToDaoWithSpecificationAndPageable() {
+        SessionFilter filter = new SessionFilter(
+                "Cobra", "Hikeppo",
+                LocalDateTime.of(2025, 1, 1, 0, 0),
+                LocalDateTime.of(2025, 12, 31, 23, 59),
+                "owner-1");
+        Pageable pageable = PageRequest.of(0, 10);
+        PartySession session = new PartySession();
+        Page<PartySession> expected = new PageImpl<>(List.of(session));
+
+        when(dao.findAll(any(Specification.class), eq(pageable))).thenReturn(expected);
+
+        Page<PartySession> result = service.list(filter, pageable);
+
+        Assertions.assertSame(expected, result);
+        verify(dao).findAll(any(Specification.class), eq(pageable));
     }
 }

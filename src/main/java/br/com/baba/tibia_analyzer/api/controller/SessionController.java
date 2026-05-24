@@ -1,21 +1,31 @@
 package br.com.baba.tibia_analyzer.api.controller;
 
 import br.com.baba.tibia_analyzer.api.dto.CreateSessionRequest;
+import br.com.baba.tibia_analyzer.api.dto.PagedResponse;
 import br.com.baba.tibia_analyzer.api.dto.SessionDetailDTO;
+import br.com.baba.tibia_analyzer.api.dto.SessionFilter;
+import br.com.baba.tibia_analyzer.api.dto.SessionSummaryDTO;
 import br.com.baba.tibia_analyzer.api.mapper.SessionMapper;
 import br.com.baba.tibia_analyzer.core.model.PartySession;
 import br.com.baba.tibia_analyzer.core.service.PartyHuntService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @RestController
@@ -49,5 +59,22 @@ public class SessionController {
                 .map(SessionMapper::toDetail)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping
+    public PagedResponse<SessionSummaryDTO> list(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String player,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam(required = false) String ownerDiscordId,
+            @PageableDefault(size = 20, sort = "startTime", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        SessionFilter filter = new SessionFilter(name, player, startDate, endDate, ownerDiscordId);
+        Page<SessionSummaryDTO> page = partyHuntService.list(filter, pageable)
+                .map(SessionMapper::toSummary);
+        return PagedResponse.from(page);
     }
 }

@@ -1,5 +1,6 @@
 package br.com.baba.tibia_analyzer.api.controller;
 
+import br.com.baba.tibia_analyzer.api.dto.SessionFilter;
 import br.com.baba.tibia_analyzer.api.exception.ApiExceptionHandler;
 import br.com.baba.tibia_analyzer.core.dto.PartyHuntAnalyzerDTO;
 import br.com.baba.tibia_analyzer.core.dto.PlayerDTO;
@@ -8,10 +9,16 @@ import br.com.baba.tibia_analyzer.core.exception.ConverterException;
 import br.com.baba.tibia_analyzer.core.model.PartySession;
 import br.com.baba.tibia_analyzer.core.service.PartyHuntService;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -120,6 +127,77 @@ class SessionControllerTest {
 
         mockMvc.perform(get("/api/sessions/{id}", id))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturnPagedListWithDefaultPagination() throws Exception {
+        PartySession session = buildSession();
+        Page<PartySession> page = new PageImpl<>(List.of(session), PageRequest.of(0, 20), 1);
+        when(partyHuntService.list(any(SessionFilter.class), any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/sessions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].id").value(session.getId().toString()))
+                .andExpect(jsonPath("$.content[0].name").value("Cobra Bastion"))
+                .andExpect(jsonPath("$.content[0].balance").value(1000))
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(20))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.totalPages").value(1));
+    }
+
+    @Test
+    void shouldPropagateFiltersAndPageableToService() throws Exception {
+        Page<PartySession> empty = new PageImpl<>(List.of(), PageRequest.of(1, 5), 0);
+        when(partyHuntService.list(any(SessionFilter.class), any(Pageable.class))).thenReturn(empty);
+
+        mockMvc.perform(get("/api/sessions")
+                        .param("name", "Cobra")
+                        .param("player", "Hikeppo")
+                        .param("startDate", "2025-01-01T00:00:00")
+                        .param("endDate", "2025-12-31T23:59:00")
+                        .param("ownerDiscordId", "owner-1")
+                        .param("page", "1")
+                        .param("size", "5")
+                        .param("sort", "balance,asc"))
+                .andExpect(status().isOk());
+
+        ArgumentCaptor<SessionFilter> filterCaptor = ArgumentCaptor.forClass(SessionFilter.class);
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        org.mockito.Mockito.verify(partyHuntService)
+                .list(filterCaptor.capture(), pageableCaptor.capture());
+
+        SessionFilter filter = filterCaptor.getValue();
+        org.junit.jupiter.api.Assertions.assertEquals("Cobra", filter.name());
+        org.junit.jupiter.api.Assertions.assertEquals("Hikeppo", filter.player());
+        org.junit.jupiter.api.Assertions.assertEquals(LocalDateTime.of(2025, 1, 1, 0, 0), filter.startDate());
+        org.junit.jupiter.api.Assertions.assertEquals(LocalDateTime.of(2025, 12, 31, 23, 59), filter.endDate());
+        org.junit.jupiter.api.Assertions.assertEquals("owner-1", filter.ownerDiscordId());
+
+        Pageable pageable = pageableCaptor.getValue();
+        org.junit.jupiter.api.Assertions.assertEquals(1, pageable.getPageNumber());
+        org.junit.jupiter.api.Assertions.assertEquals(5, pageable.getPageSize());
+        org.junit.jupiter.api.Assertions.assertEquals(Sort.Direction.ASC,
+                pageable.getSort().getOrderFor("balance").getDirection());
+    }
+
+    @Test
+    void shouldDefaultSortByStartTimeDescending() throws Exception {
+        Page<PartySession> empty = new PageImpl<>(List.of(), PageRequest.of(0, 20), 0);
+        when(partyHuntService.list(any(SessionFilter.class), any(Pageable.class))).thenReturn(empty);
+
+        mockMvc.perform(get("/api/sessions"))
+                .andExpect(status().isOk());
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        org.mockito.Mockito.verify(partyHuntService)
+                .list(any(SessionFilter.class), pageableCaptor.capture());
+
+        Pageable pageable = pageableCaptor.getValue();
+        Sort.Order startTimeOrder = pageable.getSort().getOrderFor("startTime");
+        org.junit.jupiter.api.Assertions.assertNotNull(startTimeOrder);
+        org.junit.jupiter.api.Assertions.assertEquals(Sort.Direction.DESC, startTimeOrder.getDirection());
     }
 
     private PartySession buildSession() throws Exception {

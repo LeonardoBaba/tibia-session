@@ -2,6 +2,7 @@ package br.com.baba.tibia_analyzer.api.mapper;
 
 import br.com.baba.tibia_analyzer.api.dto.SessionDetailDTO;
 import br.com.baba.tibia_analyzer.api.dto.SessionMemberDTO;
+import br.com.baba.tibia_analyzer.api.dto.SessionSummaryDTO;
 import br.com.baba.tibia_analyzer.api.dto.SessionTransferDTO;
 import br.com.baba.tibia_analyzer.core.model.PartyMember;
 import br.com.baba.tibia_analyzer.core.model.PartySession;
@@ -12,6 +13,22 @@ import java.util.List;
 public final class SessionMapper {
 
     private SessionMapper() {}
+
+    public static SessionSummaryDTO toSummary(PartySession session) {
+        return new SessionSummaryDTO(
+                session.getId(),
+                session.getName(),
+                session.getComment(),
+                session.getOwnerDiscordId(),
+                session.getStartTime(),
+                session.getEndTime(),
+                session.getSessionDuration(),
+                session.getLoot(),
+                session.getSupplies(),
+                session.getBalance(),
+                session.getProcessDate() == null ? null : session.getProcessDate().toInstant()
+        );
+    }
 
     public static SessionDetailDTO toDetail(PartySession session) {
         List<SessionMemberDTO> members = session.getPartyMembers().stream()
