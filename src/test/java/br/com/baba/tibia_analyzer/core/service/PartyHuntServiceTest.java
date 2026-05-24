@@ -144,6 +144,56 @@ class PartyHuntServiceTest {
     }
 
     @Test
+    void shouldUpdateOnlyNonNullMetadataFields() {
+        UUID id = UUID.randomUUID();
+        PartySession existing = new PartySession();
+        existing.setName("Old Name");
+        existing.setComment("Old comment");
+        when(dao.findById(id)).thenReturn(Optional.of(existing));
+        when(dao.save(existing)).thenReturn(existing);
+
+        Optional<PartySession> result = service.updateMetadata(id, "New Name", null);
+
+        Assertions.assertTrue(result.isPresent());
+        Assertions.assertEquals("New Name", result.get().getName());
+        Assertions.assertEquals("Old comment", result.get().getComment());
+        verify(dao).save(existing);
+    }
+
+    @Test
+    void shouldReturnEmptyWhenUpdatingMissingSession() {
+        UUID id = UUID.randomUUID();
+        when(dao.findById(id)).thenReturn(Optional.empty());
+
+        Optional<PartySession> result = service.updateMetadata(id, "anything", "anything");
+
+        Assertions.assertTrue(result.isEmpty());
+        verify(dao, org.mockito.Mockito.never()).save(any(PartySession.class));
+    }
+
+    @Test
+    void shouldDeleteWhenSessionExists() {
+        UUID id = UUID.randomUUID();
+        when(dao.existsById(id)).thenReturn(true);
+
+        boolean deleted = service.delete(id);
+
+        Assertions.assertTrue(deleted);
+        verify(dao).deleteById(id);
+    }
+
+    @Test
+    void shouldReturnFalseWhenDeletingMissingSession() {
+        UUID id = UUID.randomUUID();
+        when(dao.existsById(id)).thenReturn(false);
+
+        boolean deleted = service.delete(id);
+
+        Assertions.assertFalse(deleted);
+        verify(dao, org.mockito.Mockito.never()).deleteById(id);
+    }
+
+    @Test
     void shouldDelegateListToDaoWithSpecificationAndPageable() {
         SessionFilter filter = new SessionFilter(
                 "Cobra", "Hikeppo",

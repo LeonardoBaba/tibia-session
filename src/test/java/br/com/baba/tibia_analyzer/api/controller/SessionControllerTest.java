@@ -33,7 +33,9 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -198,6 +200,52 @@ class SessionControllerTest {
         Sort.Order startTimeOrder = pageable.getSort().getOrderFor("startTime");
         org.junit.jupiter.api.Assertions.assertNotNull(startTimeOrder);
         org.junit.jupiter.api.Assertions.assertEquals(Sort.Direction.DESC, startTimeOrder.getDirection());
+    }
+
+    @Test
+    void shouldPatchSessionMetadataAndReturnUpdatedDetail() throws Exception {
+        PartySession saved = buildSession();
+        saved.setName("Renamed Hunt");
+        saved.setComment("updated comment");
+        when(partyHuntService.updateMetadata(eq(saved.getId()), eq("Renamed Hunt"), eq("updated comment")))
+                .thenReturn(Optional.of(saved));
+
+        mockMvc.perform(patch("/api/sessions/{id}", saved.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\": \"Renamed Hunt\", \"comment\": \"updated comment\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(saved.getId().toString()))
+                .andExpect(jsonPath("$.name").value("Renamed Hunt"))
+                .andExpect(jsonPath("$.comment").value("updated comment"));
+    }
+
+    @Test
+    void shouldReturn404WhenPatchingMissingSession() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(partyHuntService.updateMetadata(eq(id), any(), any())).thenReturn(Optional.empty());
+
+        mockMvc.perform(patch("/api/sessions/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\": \"x\"}"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturn204WhenDeletingExistingSession() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(partyHuntService.delete(id)).thenReturn(true);
+
+        mockMvc.perform(delete("/api/sessions/{id}", id))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void shouldReturn404WhenDeletingMissingSession() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(partyHuntService.delete(id)).thenReturn(false);
+
+        mockMvc.perform(delete("/api/sessions/{id}", id))
+                .andExpect(status().isNotFound());
     }
 
     private PartySession buildSession() throws Exception {

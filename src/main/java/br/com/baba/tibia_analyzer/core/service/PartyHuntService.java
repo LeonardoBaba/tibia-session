@@ -54,6 +54,26 @@ public class PartyHuntService {
         return dao.findAll(PartySessionSpecifications.fromFilter(filter), pageable);
     }
 
+    public Optional<PartySession> updateMetadata(UUID id, String name, String comment) {
+        return dao.findById(id).map(session -> {
+            if (name != null) {
+                session.setName(name);
+            }
+            if (comment != null) {
+                session.setComment(comment);
+            }
+            return dao.save(session);
+        });
+    }
+
+    public boolean delete(UUID id) {
+        if (!dao.existsById(id)) {
+            return false;
+        }
+        dao.deleteById(id);
+        return true;
+    }
+
     private PersistResult persist(String input, String name, String comment, String ownerDiscordId) {
         PartyHuntAnalyzerDTO analyzerDTO = partyHuntAnalyzerConverter.getAnalyzer(input);
         SessionResultDTO result = partyHuntSplitter.split(analyzerDTO);
