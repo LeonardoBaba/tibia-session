@@ -4,7 +4,7 @@ import {
   SessionListFilter,
   SessionSummary,
 } from '../../core/models/session.model';
-import { HuntHistoryService } from './services/hunt-history.service';
+import { SessionApiService } from '../../core/services/session-api.service';
 import { HuntCard } from './components/hunt-card/hunt-card';
 import { HuntFilters, HuntFiltersValue } from './components/hunt-filters/hunt-filters';
 
@@ -17,7 +17,7 @@ import { HuntFilters, HuntFiltersValue } from './components/hunt-filters/hunt-fi
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HuntHistoryPage implements OnInit {
-  private readonly service = inject(HuntHistoryService);
+  private readonly service = inject(SessionApiService);
 
   protected readonly sessions = signal<SessionSummary[]>([]);
   protected readonly loading = signal(false);

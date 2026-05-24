@@ -1,6 +1,7 @@
 @let s = session();
-<article
-  class="group relative flex flex-col gap-4 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5 transition hover:border-[color:var(--color-border-strong)] hover:bg-[color:var(--color-surface-2)]"
+<a
+  [routerLink]="['/hunts', s.id]"
+  class="group relative flex flex-col gap-4 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5 no-underline text-inherit transition hover:border-[color:var(--color-border-strong)] hover:bg-[color:var(--color-surface-2)]"
   [class.ring-2]="selected()"
   [class.ring-[color:var(--color-accent)]]="selected()"
 >
@@ -12,7 +13,7 @@
       [class.bg-[color:var(--color-accent)]]="selected()"
       [attr.aria-pressed]="selected()"
       [attr.aria-label]="'Select ' + displayName() + ' for comparison'"
-      (click)="onSelectClick()"
+      (click)="onSelectClick($event)"
     >
       @if (selected()) {
         <svg viewBox="0 0 16 16" class="h-3 w-3 text-black" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -63,4 +64,4 @@
       "{{ s.comment }}"
     </p>
   }
-</article>
+</a>

@@ -1,0 +1,93 @@
+@let s = session();
+<section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
+  <header class="mb-5 flex items-center gap-2">
+    <h2 class="text-lg font-semibold">Hunt Summary</h2>
+  </header>
+
+  <dl class="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
+    <div>
+      <dt class="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+        Session duration
+      </dt>
+      <dd class="mt-1 text-base font-semibold tabular-nums">{{ s.sessionDuration ?? '—' }}</dd>
+    </div>
+
+    <div>
+      <dt class="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+        Members
+      </dt>
+      <dd class="mt-1 text-base font-semibold tabular-nums">{{ s.members.length }}</dd>
+    </div>
+
+    <div>
+      <dt class="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+        Process date
+      </dt>
+      <dd class="mt-1 text-base font-semibold tabular-nums">
+        {{ s.processDate ? (s.processDate | date: 'yyyy-MM-dd HH:mm') : '—' }}
+      </dd>
+    </div>
+
+    <div>
+      <dt class="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+        Balance
+      </dt>
+      <dd class="mt-1 text-xl font-bold tabular-nums" [class]="toneClass(balanceTone(s.balance))">
+        {{ s.balance | signedNumber }}
+      </dd>
+    </div>
+
+    <div>
+      <dt class="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+        Balance / h
+      </dt>
+      <dd class="mt-1 text-xl font-bold tabular-nums" [class]="toneClass(balanceTone(balancePerHour() ?? 0))">
+        @if (balancePerHour() === null) {
+          —
+        } @else {
+          {{ balancePerHour() ?? 0 | signedNumber }}
+        }
+      </dd>
+    </div>
+
+    <div>
+      <dt class="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+        Loot / Supplies
+      </dt>
+      <dd class="mt-1 text-base font-semibold tabular-nums">
+        <span class="text-[color:var(--color-text-primary)]">{{ s.loot | number: '1.0-0' : 'en-US' }}</span>
+        <span class="px-1 text-[color:var(--color-text-muted)]">/</span>
+        <span class="text-[color:var(--color-loss)]">-{{ s.supplies | number: '1.0-0' : 'en-US' }}</span>
+      </dd>
+    </div>
+
+    @if (topDamageMember(); as top) {
+      <div>
+        <dt class="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+          Top damage name
+        </dt>
+        <dd class="mt-1 text-base font-semibold">{{ top.name }}</dd>
+      </div>
+
+      <div>
+        <dt class="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+          Top damage value
+        </dt>
+        <dd class="mt-1 text-base font-semibold tabular-nums">
+          {{ top.damage | number: '1.0-0' : 'en-US' }}
+        </dd>
+      </div>
+    }
+
+    @if (s.comment) {
+      <div class="col-span-full">
+        <dt class="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+          Comment
+        </dt>
+        <dd class="mt-1 border-l-2 border-[color:var(--color-border-strong)] pl-3 text-sm italic text-[color:var(--color-text-secondary)]">
+          "{{ s.comment }}"
+        </dd>
+      </div>
+    }
+  </dl>
+</section>

@@ -12,6 +12,11 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/hunt-history/hunt-history.routes').then((m) => m.HUNT_HISTORY_ROUTES),
       },
+      {
+        path: 'hunts/:id',
+        loadChildren: () =>
+          import('./features/hunt-detail/hunt-detail.routes').then((m) => m.HUNT_DETAIL_ROUTES),
+      },
     ],
   },
 ];

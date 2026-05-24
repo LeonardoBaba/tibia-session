@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { SessionSummary } from '../../../../core/models/session.model';
 import { CompactNumberPipe } from '../../../../shared/pipes/compact-number.pipe';
 import { SignedNumberPipe } from '../../../../shared/pipes/signed-number.pipe';
@@ -7,7 +8,7 @@ import { SignedNumberPipe } from '../../../../shared/pipes/signed-number.pipe';
 @Component({
   selector: 'app-hunt-card',
   standalone: true,
-  imports: [DatePipe, CompactNumberPipe, SignedNumberPipe],
+  imports: [DatePipe, RouterLink, CompactNumberPipe, SignedNumberPipe],
   templateUrl: './hunt-card.html',
   styleUrl: './hunt-card.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,7 +27,9 @@ export class HuntCard {
 
   protected readonly displayName = computed(() => this.session().name ?? 'Unnamed hunt');
 
-  protected onSelectClick(): void {
+  protected onSelectClick(event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
     this.toggleSelect.emit(this.session().id);
   }
 }

@@ -1,0 +1,40 @@
+<section class="flex flex-col gap-6">
+  <!-- Header -->
+  <header class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <nav class="mb-2 text-xs text-[color:var(--color-text-muted)]">
+        <a routerLink="/hunts" class="transition hover:text-[color:var(--color-accent)]">Hunt History</a>
+        <span class="mx-1">/</span>
+        <span class="text-[color:var(--color-text-secondary)]">{{ session()?.name ?? 'Hunt' }}</span>
+      </nav>
+      <h1 class="text-3xl font-bold text-[color:var(--color-text-secondary)]">
+        {{ session()?.name ?? 'Hunt Details' }}
+      </h1>
+      <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
+        Detailed breakdown of session performance.
+      </p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="flex justify-center py-10 text-sm text-[color:var(--color-text-muted)]">
+      Loading session…
+    </div>
+  } @else if (error()) {
+    <div class="rounded-md border border-[color:var(--color-loss)] bg-[color:var(--color-loss)]/10 p-4 text-sm text-[color:var(--color-loss)]">
+      {{ error() }}
+    </div>
+  } @else if (session(); as s) {
+    <app-hunt-summary [session]="s" />
+
+    <app-party-members [members]="s.members" />
+
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <app-ranking-card title="Damage" [entries]="damageEntries()" tone="accent" />
+      <app-ranking-card title="Healing" [entries]="healingEntries()" tone="profit" />
+      <app-ranking-card title="Waste" [entries]="wasteEntries()" tone="loss" />
+    </div>
+
+    <app-payment-distribution [transfers]="s.transfers" />
+  }
+</section>

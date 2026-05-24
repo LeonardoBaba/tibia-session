@@ -1,0 +1,46 @@
+<section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
+  <header class="mb-4 flex items-center gap-2">
+    <h2 class="text-lg font-semibold">Payment Distribution</h2>
+  </header>
+
+  @if (transfers().length === 0) {
+    <p class="text-sm text-[color:var(--color-text-muted)]">
+      Nothing to transfer — everyone is even.
+    </p>
+  } @else {
+    <div class="flex flex-col gap-5">
+      @for (group of grouped(); track group.payer) {
+        <div>
+          <p class="mb-2 text-xs text-[color:var(--color-text-muted)]">
+            From <span class="font-semibold text-[color:var(--color-text-primary)]">{{ group.payer }}</span>
+            — total <span class="font-semibold tabular-nums text-[color:var(--color-text-primary)]">
+              {{ group.total | number: '1.0-0' : 'en-US' }}
+            </span>
+          </p>
+          <ul class="flex flex-col gap-2">
+            @for (transfer of group.transfers; track transfer.id) {
+              <li class="flex items-center justify-between gap-3 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-bg)] px-3 py-2 text-sm">
+                <span class="flex items-baseline gap-2 min-w-0">
+                  <span class="truncate">to <span class="font-semibold">{{ transfer.toPlayer }}</span></span>
+                </span>
+                <span class="flex items-center gap-3 shrink-0">
+                  <span class="tabular-nums font-semibold text-[color:var(--color-accent)]">
+                    {{ transfer.amount | number: '1.0-0' : 'en-US' }}
+                  </span>
+                  <button
+                    type="button"
+                    (click)="copyCommand(transfer)"
+                    title="Copy transfer command"
+                    class="rounded border border-[color:var(--color-border)] px-2 py-1 text-xs font-mono text-[color:var(--color-text-secondary)] transition hover:border-[color:var(--color-accent)] hover:text-[color:var(--color-accent)]"
+                  >
+                    copy
+                  </button>
+                </span>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  }
+</section>

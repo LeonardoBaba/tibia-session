@@ -1,0 +1,28 @@
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
+import {
+  PagedResponse,
+  SessionDetail,
+  SessionListFilter,
+  SessionSummary,
+} from '../models/session.model';
+
+@Injectable({ providedIn: 'root' })
+export class SessionApiService {
+  private readonly http = inject(HttpClient);
+
+  list(filter: SessionListFilter = {}): Observable<PagedResponse<SessionSummary>> {
+    let params = new HttpParams();
+    for (const [key, value] of Object.entries(filter)) {
+      if (value !== undefined && value !== null && value !== '') {
+        params = params.set(key, String(value));
+      }
+    }
+    return this.http.get<PagedResponse<SessionSummary>>('/api/sessions', { params });
+  }
+
+  getById(id: string): Observable<SessionDetail> {
+    return this.http.get<SessionDetail>(`/api/sessions/${id}`);
+  }
+}
