@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input, si
 import { Router, RouterLink } from '@angular/router';
 import { SessionApiService } from '../../core/services/session-api.service';
 import { SessionDetail } from '../../core/models/session.model';
+import { EditableText } from '../../shared/components/editable-text/editable-text';
 import { HuntSummary } from './components/hunt-summary/hunt-summary';
 import { PartyMembers } from './components/party-members/party-members';
 import { PaymentDistribution } from './components/payment-distribution/payment-distribution';
@@ -10,7 +11,14 @@ import { RankingCard, RankingEntry } from './components/ranking-card/ranking-car
 @Component({
   selector: 'app-hunt-detail-page',
   standalone: true,
-  imports: [RouterLink, HuntSummary, PartyMembers, PaymentDistribution, RankingCard],
+  imports: [
+    RouterLink,
+    EditableText,
+    HuntSummary,
+    PartyMembers,
+    PaymentDistribution,
+    RankingCard,
+  ],
   templateUrl: './hunt-detail.page.html',
   styleUrl: './hunt-detail.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,6 +33,7 @@ export class HuntDetailPage {
   protected readonly session = signal<SessionDetail | null>(null);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
+  protected readonly saving = signal(false);
 
   protected readonly damageEntries = computed<RankingEntry[]>(() =>
     (this.session()?.members ?? [])
@@ -45,8 +54,6 @@ export class HuntDetailPage {
   );
 
   constructor() {
-    // Sempre que o `id` da rota mudar, refaz o fetch. Effects são o jeito
-    // idiomático de reagir a inputs no Angular moderno.
     effect(() => {
       const id = this.id();
       if (!id) return;
@@ -54,8 +61,36 @@ export class HuntDetailPage {
     });
   }
 
+  protected onNameSave(name: string): void {
+    const trimmed = name.trim();
+    if (trimmed.length === 0) return;
+    this.patch({ name: trimmed });
+  }
+
+  protected onCommentSave(comment: string): void {
+    // Permite limpar (string vazia).
+    this.patch({ comment });
+  }
+
   protected back(): void {
     this.router.navigate(['/hunts']);
+  }
+
+  private patch(payload: { name?: string; comment?: string }): void {
+    const id = this.id();
+    if (!id) return;
+    this.saving.set(true);
+    this.api.update(id, payload).subscribe({
+      next: (updated) => {
+        this.session.set(updated);
+        this.saving.set(false);
+      },
+      error: (err) => {
+        console.error(err);
+        this.error.set('Falha ao salvar.');
+        this.saving.set(false);
+      },
+    });
   }
 
   private fetch(id: string): void {

@@ -25,4 +25,8 @@ export class SessionApiService {
   getById(id: string): Observable<SessionDetail> {
     return this.http.get<SessionDetail>(`/api/sessions/${id}`);
   }
+
+  update(id: string, patch: { name?: string; comment?: string }): Observable<SessionDetail> {
+    return this.http.patch<SessionDetail>(`/api/sessions/${id}`, patch);
+  }
 }
