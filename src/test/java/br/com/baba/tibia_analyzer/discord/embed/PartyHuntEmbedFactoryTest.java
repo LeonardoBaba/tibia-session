@@ -9,10 +9,14 @@ import org.junit.jupiter.api.Test;
 
 import java.awt.Color;
 import java.util.List;
+import java.util.UUID;
 
 class PartyHuntEmbedFactoryTest {
 
-    private final PartyHuntEmbedFactory factory = new PartyHuntEmbedFactory();
+    private static final String FRONTEND_URL = "https://huntanalyzer.lbaba.com.br";
+    private static final UUID SESSION_ID = UUID.fromString("11111111-2222-3333-4444-555555555555");
+
+    private final PartyHuntEmbedFactory factory = new PartyHuntEmbedFactory(FRONTEND_URL);
 
     @Test
     void shouldBuildEmbedFromResult() {
@@ -27,7 +31,7 @@ class PartyHuntEmbedFactoryTest {
         );
 
         // Act
-        MessageEmbed embed = factory.build(result);
+        MessageEmbed embed = factory.build(result, SESSION_ID);
 
         // Assert
         Assertions.assertEquals("Party Hunt Session – 2 members", embed.getTitle());
@@ -52,8 +56,48 @@ class PartyHuntEmbedFactoryTest {
     }
 
     @Test
+    void shouldLinkTitleAndAddOpenInBrowserFieldWhenSessionIdIsProvided() {
+        SessionResultDTO result = new SessionResultDTO(
+                2, 100, 50, 0, "01:00h",
+                List.of(), List.of(), List.of());
+
+        MessageEmbed embed = factory.build(result, SESSION_ID);
+
+        String expectedUrl = FRONTEND_URL + "/hunts/" + SESSION_ID;
+        Assertions.assertEquals(expectedUrl, embed.getUrl());
+
+        MessageEmbed.Field openField = findField(embed, "Open in browser");
+        Assertions.assertEquals(expectedUrl, openField.getValue());
+    }
+
+    @Test
+    void shouldStripTrailingSlashFromConfiguredFrontendUrl() {
+        PartyHuntEmbedFactory withSlash = new PartyHuntEmbedFactory("http://localhost:4200/");
+        SessionResultDTO result = new SessionResultDTO(
+                1, 0, 0, 0, "00:30h",
+                List.of(), List.of(), List.of());
+
+        MessageEmbed embed = withSlash.build(result, SESSION_ID);
+
+        Assertions.assertEquals("http://localhost:4200/hunts/" + SESSION_ID, embed.getUrl());
+    }
+
+    @Test
+    void shouldOmitLinkWhenSessionIdIsNull() {
+        SessionResultDTO result = new SessionResultDTO(
+                1, 0, 0, 0, "00:30h",
+                List.of(), List.of(), List.of());
+
+        MessageEmbed embed = factory.build(result, null);
+
+        Assertions.assertNull(embed.getUrl());
+        boolean hasOpen = embed.getFields().stream()
+                .anyMatch(f -> "Open in browser".equals(f.getName()));
+        Assertions.assertFalse(hasOpen);
+    }
+
+    @Test
     void shouldUseRedColorForWasteSession() {
-        // Arrange
         SessionResultDTO result = new SessionResultDTO(
                 2, -500_000, -250_000, 0, "00:45h",
                 List.of(new PlayerStatDTO("Knight", 10, 100.0)),
@@ -61,16 +105,13 @@ class PartyHuntEmbedFactoryTest {
                 List.of()
         );
 
-        // Act
-        MessageEmbed embed = factory.build(result);
+        MessageEmbed embed = factory.build(result, SESSION_ID);
 
-        // Assert
         Assertions.assertEquals(new Color(0xE74C3C), embed.getColor());
     }
 
     @Test
     void shouldUseNeutralColorWhenBalanceIsZero() {
-        // Arrange
         SessionResultDTO result = new SessionResultDTO(
                 2, 0, 0, 0, "00:45h",
                 List.of(new PlayerStatDTO("Knight", 10, 100.0)),
@@ -78,16 +119,13 @@ class PartyHuntEmbedFactoryTest {
                 List.of()
         );
 
-        // Act
-        MessageEmbed embed = factory.build(result);
+        MessageEmbed embed = factory.build(result, SESSION_ID);
 
-        // Assert
         Assertions.assertEquals(new Color(0x95A5A6), embed.getColor());
     }
 
     @Test
     void shouldRenderEachTransferInItsOwnCodeBlock() {
-        // Arrange
         SessionResultDTO result = new SessionResultDTO(
                 4, 3_805_270, 951_317, 6_735_667, "02:11h",
                 List.of(new PlayerStatDTO("Hikeppo", 100, 34.24)),
@@ -99,17 +137,29 @@ class PartyHuntEmbedFactoryTest {
                 )
         );
 
-        // Act
-        MessageEmbed embed = factory.build(result);
+        MessageEmbed embed = factory.build(result, SESSION_ID);
 
-        // Assert: cada transfer deve estar isolado num bloco ``` próprio,
-        // para que linhas longas (ex.: nomes com espaço) não quebrem ao copiar.
         MessageEmbed.Field transfers = findField(embed, "Transfers for Hikeppo");
         String value = transfers.getValue();
         Assertions.assertEquals(3, countOccurrences(value, "```\ntransfer "));
         Assertions.assertTrue(value.contains("```\ntransfer 1767489 to Archulava\n```"));
         Assertions.assertTrue(value.contains("```\ntransfer 1425175 to Luziadas\n```"));
         Assertions.assertTrue(value.contains("```\ntransfer 911575 to Volta Mcfish\n```"));
+    }
+
+    @Test
+    void shouldRenderPlaceholderWhenThereAreNoTransfers() {
+        SessionResultDTO result = new SessionResultDTO(
+                1, 0, 0, 0, "00:30h",
+                List.of(new PlayerStatDTO("Solo", 10, 100.0)),
+                List.of(new PlayerStatDTO("Solo", 5, 100.0)),
+                List.of()
+        );
+
+        MessageEmbed embed = factory.build(result, SESSION_ID);
+
+        MessageEmbed.Field transfers = findField(embed, "Transfers");
+        Assertions.assertTrue(transfers.getValue().contains("Nothing to transfer"));
     }
 
     private int countOccurrences(String haystack, String needle) {
@@ -120,24 +170,6 @@ class PartyHuntEmbedFactoryTest {
             index += needle.length();
         }
         return count;
-    }
-
-    @Test
-    void shouldRenderPlaceholderWhenThereAreNoTransfers() {
-        // Arrange
-        SessionResultDTO result = new SessionResultDTO(
-                1, 0, 0, 0, "00:30h",
-                List.of(new PlayerStatDTO("Solo", 10, 100.0)),
-                List.of(new PlayerStatDTO("Solo", 5, 100.0)),
-                List.of()
-        );
-
-        // Act
-        MessageEmbed embed = factory.build(result);
-
-        // Assert
-        MessageEmbed.Field transfers = findField(embed, "Transfers");
-        Assertions.assertTrue(transfers.getValue().contains("Nothing to transfer"));
     }
 
     private MessageEmbed.Field findField(MessageEmbed embed, String name) {

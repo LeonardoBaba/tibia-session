@@ -1,7 +1,7 @@
 package br.com.baba.tibia_analyzer.discord.interactions.modals;
 
-import br.com.baba.tibia_analyzer.core.dto.SessionResultDTO;
 import br.com.baba.tibia_analyzer.core.service.PartyHuntService;
+import br.com.baba.tibia_analyzer.core.service.PartyHuntService.ProcessedSession;
 import br.com.baba.tibia_analyzer.discord.embed.PartyHuntEmbedFactory;
 import br.com.baba.tibia_analyzer.discord.enums.InputEnum;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
@@ -28,13 +28,16 @@ public class PartyHuntHandler implements ModalHandler {
 
         String input = event.getValue(InputEnum.SESSION_INPUT.getId()).getAsString();
         String ownerDiscordId = event.getUser().getId();
-        SessionResultDTO result = partyHuntService.processSession(input, null, null, ownerDiscordId);
+
+        ProcessedSession processed = partyHuntService.processAndPersist(
+                input, null, null, ownerDiscordId);
 
         FileUpload sessionFile = FileUpload.fromData(
                 input.getBytes(StandardCharsets.UTF_8), SESSION_FILE_NAME);
 
         event.getHook()
-                .sendMessageEmbeds(partyHuntEmbedFactory.build(result))
+                .sendMessageEmbeds(partyHuntEmbedFactory.build(
+                        processed.splitterResult(), processed.saved().getId()))
                 .addFiles(sessionFile)
                 .queue();
     }

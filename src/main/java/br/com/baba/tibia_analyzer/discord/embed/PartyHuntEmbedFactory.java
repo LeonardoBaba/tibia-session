@@ -5,6 +5,7 @@ import br.com.baba.tibia_analyzer.core.dto.PlayerStatDTO;
 import br.com.baba.tibia_analyzer.core.dto.SessionResultDTO;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.awt.Color;
@@ -15,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -25,11 +27,20 @@ public class PartyHuntEmbedFactory {
     private static final Color WASTE_COLOR = new Color(0xE74C3C);
     private static final Color NEUTRAL_COLOR = new Color(0x95A5A6);
 
-    public MessageEmbed build(SessionResultDTO result) {
+    private final String frontendUrl;
+
+    public PartyHuntEmbedFactory(@Value("${analyzer.frontend.url}") String frontendUrl) {
+        // Remove barra final pra evitar "//hunts/..." quando concatenar.
+        this.frontendUrl = frontendUrl == null ? null : frontendUrl.replaceAll("/+$", "");
+    }
+
+    public MessageEmbed build(SessionResultDTO result, UUID sessionId) {
         EmbedBuilder embed = new EmbedBuilder();
 
         embed.setColor(colorFor(result.balance()));
-        embed.setTitle("Party Hunt Session – " + result.memberCount() + " members");
+        embed.setTitle(
+                "Party Hunt Session – " + result.memberCount() + " members",
+                buildSessionUrl(sessionId));
         embed.setDescription(
                 "**Balance:** " + format(result.balance()) + "\n" +
                 "**Individual balance:** " + format(result.individualBalance()) + "\n" +
@@ -40,10 +51,21 @@ public class PartyHuntEmbedFactory {
 
         appendTransfers(embed, result.transfers());
 
+        if (sessionId != null && frontendUrl != null) {
+            embed.addField("Open in browser", buildSessionUrl(sessionId), false);
+        }
+
         embed.setFooter(result.sessionDuration() + " hunt");
         embed.setTimestamp(Instant.now());
 
         return embed.build();
+    }
+
+    private String buildSessionUrl(UUID sessionId) {
+        if (sessionId == null || frontendUrl == null || frontendUrl.isBlank()) {
+            return null;
+        }
+        return frontendUrl + "/hunts/" + sessionId;
     }
 
     private String formatRanking(List<PlayerStatDTO> stats) {

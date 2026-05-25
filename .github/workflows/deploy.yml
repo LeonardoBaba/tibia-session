@@ -74,6 +74,7 @@ jobs:
                   - ANALYZER_DATABASE_USER=${ANALYZER_DATABASE_USER}
                   - ANALYZER_DATABASE_PASSWORD=${ANALYZER_DATABASE_PASSWORD}
                   - ANALYZER_DISCORD_TOKEN=${ANALYZER_DISCORD_TOKEN}
+                  - ANALYZER_FRONTEND_URL=https://huntanalyzer.lbaba.com.br
                 depends_on:
                   - db
                 networks:

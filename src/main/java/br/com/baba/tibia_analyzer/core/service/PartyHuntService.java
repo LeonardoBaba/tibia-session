@@ -36,14 +36,30 @@ public class PartyHuntService {
                                            String name,
                                            String comment,
                                            String ownerDiscordId) {
-        return persist(input, name, comment, ownerDiscordId).splitterResult();
+        return processAndPersist(input, name, comment, ownerDiscordId).splitterResult();
     }
 
     public PartySession createSession(String input,
                                       String name,
                                       String comment,
                                       String ownerDiscordId) {
-        return persist(input, name, comment, ownerDiscordId).saved();
+        return processAndPersist(input, name, comment, ownerDiscordId).saved();
+    }
+
+    /**
+     * Faz parsing + divisão + persistência e devolve a entidade salva (com id)
+     * E o resultado da divisão. Útil pra callers (ex.: bot do Discord) que
+     * precisam dos dois — o id pra linkar pra UI, e o resultado pra renderizar.
+     */
+    public ProcessedSession processAndPersist(String input,
+                                              String name,
+                                              String comment,
+                                              String ownerDiscordId) {
+        PartyHuntAnalyzerDTO analyzerDTO = partyHuntAnalyzerConverter.getAnalyzer(input);
+        SessionResultDTO result = partyHuntSplitter.split(analyzerDTO);
+        PartySession saved = dao.save(
+                new PartySession(analyzerDTO, result, input, name, comment, ownerDiscordId));
+        return new ProcessedSession(saved, result);
     }
 
     public Optional<PartySession> findById(UUID id) {
@@ -74,13 +90,5 @@ public class PartyHuntService {
         return true;
     }
 
-    private PersistResult persist(String input, String name, String comment, String ownerDiscordId) {
-        PartyHuntAnalyzerDTO analyzerDTO = partyHuntAnalyzerConverter.getAnalyzer(input);
-        SessionResultDTO result = partyHuntSplitter.split(analyzerDTO);
-        PartySession saved = dao.save(
-                new PartySession(analyzerDTO, result, input, name, comment, ownerDiscordId));
-        return new PersistResult(saved, result);
-    }
-
-    private record PersistResult(PartySession saved, SessionResultDTO splitterResult) {}
+    public record ProcessedSession(PartySession saved, SessionResultDTO splitterResult) {}
 }
