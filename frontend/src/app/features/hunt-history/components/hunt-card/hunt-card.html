@@ -34,14 +34,28 @@
     </div>
   </header>
 
-  <!-- Total balance -->
-  <div>
-    <p class="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
-      Total balance
-    </p>
-    <p class="mt-1 text-2xl font-bold tabular-nums" [class]="balanceClass()">
-      {{ s.balance | signedNumber }} <span class="text-sm font-medium text-[color:var(--color-text-secondary)]">gp</span>
-    </p>
+  <!-- Total balance + member count -->
+  <div class="flex items-start justify-between gap-2">
+    <div>
+      <p class="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+        Total balance
+      </p>
+      <p class="mt-1 text-2xl font-bold tabular-nums" [class]="balanceClass()">
+        {{ s.balance | signedNumber }} <span class="text-sm font-medium text-[color:var(--color-text-secondary)]">gp</span>
+      </p>
+    </div>
+    <div
+      class="flex shrink-0 items-center gap-1.5 rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-bg)] px-2.5 py-1"
+      [title]="s.memberCount + ' players'"
+    >
+      <svg viewBox="0 0 16 16" class="h-3.5 w-3.5 text-[color:var(--color-accent)]" fill="none" stroke="currentColor" stroke-width="1.75">
+        <circle cx="6" cy="5.5" r="2.5" />
+        <path d="M2 13c0-2.2 1.8-4 4-4s4 1.8 4 4" />
+        <circle cx="11.5" cy="6.5" r="2" />
+        <path d="M10 13c0-1.8 1.5-3.2 3.2-3.2" />
+      </svg>
+      <span class="text-xs font-semibold tabular-nums">{{ s.memberCount }}</span>
+    </div>
   </div>
 
   <!-- Loot / Supplies -->

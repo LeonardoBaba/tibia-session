@@ -26,6 +26,7 @@ public final class SessionMapper {
                 session.getLoot(),
                 session.getSupplies(),
                 session.getBalance(),
+                session.getPartyMembers().size(),
                 session.getProcessDate() == null ? null : session.getProcessDate().toInstant()
         );
     }

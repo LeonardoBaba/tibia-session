@@ -9,6 +9,7 @@ export interface SessionSummary {
   loot: number;
   supplies: number;
   balance: number;
+  memberCount: number;
   processDate: string | null;
 }
 

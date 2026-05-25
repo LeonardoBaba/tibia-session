@@ -15,5 +15,6 @@ public record SessionSummaryDTO(
         long loot,
         long supplies,
         long balance,
+        int memberCount,
         Instant processDate
 ) {}
