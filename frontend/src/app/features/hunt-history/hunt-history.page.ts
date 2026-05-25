@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import {
   PagedResponse,
   SessionListFilter,
@@ -18,6 +19,7 @@ import { HuntFilters, HuntFiltersValue } from './components/hunt-filters/hunt-fi
 })
 export class HuntHistoryPage implements OnInit {
   private readonly service = inject(SessionApiService);
+  private readonly router = inject(Router);
 
   protected readonly sessions = signal<SessionSummary[]>([]);
   protected readonly loading = signal(false);
@@ -52,8 +54,12 @@ export class HuntHistoryPage implements OnInit {
   }
 
   protected onCompare(): void {
-    // Próxima fase: navegar para tela de comparação com os ids selecionados.
-    console.log('Comparar', Array.from(this.selectedIds()));
+    const ids = Array.from(this.selectedIds());
+    if (ids.length < 2) {
+      this.error.set('Selecione pelo menos 2 sessões para comparar.');
+      return;
+    }
+    this.router.navigate(['/compare'], { queryParams: { ids: ids.join(',') } });
   }
 
   private fetch(filter: SessionListFilter = {}): void {

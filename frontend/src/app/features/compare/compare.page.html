@@ -1,0 +1,136 @@
+<section class="flex flex-col gap-6">
+  <!-- Header -->
+  <header>
+    <h1 class="text-3xl font-bold text-[color:var(--color-text-secondary)]">Compare</h1>
+    <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
+      Compare multiple sessions side-by-side.
+    </p>
+  </header>
+
+  @if (!canCompare()) {
+    <div class="flex flex-col items-center gap-3 rounded-xl border border-dashed border-[color:var(--color-border)] py-16 text-sm text-[color:var(--color-text-muted)]">
+      <p>Selecione pelo menos 2 sessões para comparar.</p>
+      <a
+        routerLink="/hunts"
+        class="rounded-md border border-[color:var(--color-accent)] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-accent)] transition hover:bg-[color:var(--color-accent-soft)]"
+      >
+        Ir para Hunt History
+      </a>
+    </div>
+  } @else if (loading()) {
+    <div class="flex justify-center py-10 text-sm text-[color:var(--color-text-muted)]">
+      Loading sessions…
+    </div>
+  } @else {
+    @if (error()) {
+      <div class="rounded-md border border-[color:var(--color-loss)] bg-[color:var(--color-loss)]/10 p-4 text-sm text-[color:var(--color-loss)]">
+        {{ error() }}
+      </div>
+    }
+
+    @if (sessions().length >= 2) {
+      <!-- Hunts header strip -->
+      <div class="grid gap-4" [style.grid-template-columns]="'repeat(' + sessions().length + ', minmax(0, 1fr))'">
+        @for (session of sessions(); track session.id; let i = $index) {
+          <a
+            [routerLink]="['/hunts', session.id]"
+            class="flex flex-col gap-1 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-4 no-underline text-inherit transition hover:border-[color:var(--color-border-strong)]"
+          >
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-accent)]">
+              Hunt #{{ i + 1 }}
+            </p>
+            <p class="truncate text-base font-semibold">{{ session.name ?? 'Unnamed hunt' }}</p>
+            <p class="text-xs text-[color:var(--color-text-muted)]">
+              {{ session.sessionDuration ?? '—' }} · {{ session.members.length }} members
+            </p>
+            <p class="mt-1 text-lg font-bold tabular-nums" [class]="balanceClass(session.balance)">
+              {{ session.balance | signedNumber }}
+            </p>
+          </a>
+        }
+      </div>
+
+      <!-- Per-player damage -->
+      <section class="overflow-x-auto rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
+        <header class="mb-4 flex items-center gap-2">
+          <h2 class="text-lg font-semibold">Damage by player</h2>
+          <span class="text-xs text-[color:var(--color-text-muted)]">
+            ({{ damageMatrix().length }} players)
+          </span>
+        </header>
+
+        @if (damageMatrix().length === 0) {
+          <p class="text-sm text-[color:var(--color-text-muted)]">No player data.</p>
+        } @else {
+          <table class="w-full border-collapse text-sm">
+            <thead class="text-left text-[10px] uppercase tracking-wider text-[color:var(--color-text-muted)]">
+              <tr class="border-b border-[color:var(--color-border)]">
+                <th class="px-3 py-2 font-semibold">Player</th>
+                @for (session of sessions(); track session.id; let i = $index) {
+                  <th class="px-3 py-2 font-semibold text-right">Hunt #{{ i + 1 }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody class="tabular-nums">
+              @for (row of damageMatrix(); track row.name) {
+                <tr class="border-b border-[color:var(--color-border)] last:border-0 hover:bg-[color:var(--color-surface-2)]">
+                  <td class="px-3 py-3 font-medium">{{ row.name }}</td>
+                  @for (value of row.values; track $index) {
+                    <td class="px-3 py-3 text-right">
+                      @if (value === null) {
+                        <span class="text-[color:var(--color-text-muted)]">—</span>
+                      } @else {
+                        {{ value | number: '1.0-0' : 'en-US' }}
+                      }
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </section>
+
+      <!-- Per-player healing -->
+      <section class="overflow-x-auto rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
+        <header class="mb-4 flex items-center gap-2">
+          <h2 class="text-lg font-semibold">Healing by player</h2>
+          <span class="text-xs text-[color:var(--color-text-muted)]">
+            ({{ healingMatrix().length }} players)
+          </span>
+        </header>
+
+        @if (healingMatrix().length === 0) {
+          <p class="text-sm text-[color:var(--color-text-muted)]">No player data.</p>
+        } @else {
+          <table class="w-full border-collapse text-sm">
+            <thead class="text-left text-[10px] uppercase tracking-wider text-[color:var(--color-text-muted)]">
+              <tr class="border-b border-[color:var(--color-border)]">
+                <th class="px-3 py-2 font-semibold">Player</th>
+                @for (session of sessions(); track session.id; let i = $index) {
+                  <th class="px-3 py-2 font-semibold text-right">Hunt #{{ i + 1 }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody class="tabular-nums">
+              @for (row of healingMatrix(); track row.name) {
+                <tr class="border-b border-[color:var(--color-border)] last:border-0 hover:bg-[color:var(--color-surface-2)]">
+                  <td class="px-3 py-3 font-medium">{{ row.name }}</td>
+                  @for (value of row.values; track $index) {
+                    <td class="px-3 py-3 text-right">
+                      @if (value === null) {
+                        <span class="text-[color:var(--color-text-muted)]">—</span>
+                      } @else {
+                        {{ value | number: '1.0-0' : 'en-US' }}
+                      }
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </section>
+    }
+  }
+</section>

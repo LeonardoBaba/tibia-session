@@ -17,6 +17,11 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/hunt-detail/hunt-detail.routes').then((m) => m.HUNT_DETAIL_ROUTES),
       },
+      {
+        path: 'compare',
+        loadChildren: () =>
+          import('./features/compare/compare.routes').then((m) => m.COMPARE_ROUTES),
+      },
     ],
   },
 ];
