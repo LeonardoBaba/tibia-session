@@ -55,6 +55,8 @@ jobs:
             echo "ANALYZER_DATABASE_USER=${{ secrets.DB_USER }}" >> .env
             echo "ANALYZER_DATABASE_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
             echo "ANALYZER_DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" >> .env
+            echo "ANALYZER_DISCORD_CLIENT_ID=${{ secrets.DISCORD_CLIENT_ID }}" >> .env
+            echo "ANALYZER_DISCORD_CLIENT_SECRET=${{ secrets.DISCORD_CLIENT_SECRET }}" >> .env
             
             # 3. Cria o docker-compose.yml DO ZERO (sobrescreve o antigo/corrompido)
             # O bloco abaixo escreve o conteúdo exato dentro do arquivo na VPS
@@ -75,6 +77,10 @@ jobs:
                   - ANALYZER_DATABASE_PASSWORD=${ANALYZER_DATABASE_PASSWORD}
                   - ANALYZER_DISCORD_TOKEN=${ANALYZER_DISCORD_TOKEN}
                   - ANALYZER_FRONTEND_URL=https://huntanalyzer.lbaba.com.br
+                  - ANALYZER_DISCORD_CLIENT_ID=${ANALYZER_DISCORD_CLIENT_ID}
+                  - ANALYZER_DISCORD_CLIENT_SECRET=${ANALYZER_DISCORD_CLIENT_SECRET}
+                  - ANALYZER_COOKIE_SECURE=true
+                  - ANALYZER_COOKIE_DOMAIN=.lbaba.com.br
                 depends_on:
                   - db
                 networks:

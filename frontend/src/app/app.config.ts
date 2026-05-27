@@ -4,11 +4,17 @@ import { provideHttpClient, withInterceptors, withFetch } from '@angular/common/
 
 import { routes } from './app.routes';
 import { apiBaseUrlInterceptor } from './core/http/api-base-url.interceptor';
+import { authInterceptor } from './core/auth/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding()),
-    provideHttpClient(withFetch(), withInterceptors([apiBaseUrlInterceptor])),
+    provideHttpClient(
+      withFetch(),
+      // A ordem importa: `authInterceptor` precisa rodar antes do
+      // `apiBaseUrlInterceptor` pra ainda enxergar o prefixo `/api`.
+      withInterceptors([authInterceptor, apiBaseUrlInterceptor]),
+    ),
   ],
 };

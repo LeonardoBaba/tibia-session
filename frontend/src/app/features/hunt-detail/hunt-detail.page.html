@@ -8,14 +8,20 @@
         <span class="text-[color:var(--color-text-secondary)]">{{ session()?.name ?? 'Hunt' }}</span>
       </nav>
       @if (session(); as s) {
-        <app-editable-text
-          [value]="s.name"
-          placeholder="Name this hunt..."
-          [allowEmpty]="false"
-          displayClass="text-3xl font-bold text-[color:var(--color-text-secondary)]"
-          inputClass="text-3xl font-bold text-[color:var(--color-text-primary)]"
-          (save)="onNameSave($event)"
-        />
+        @if (isOwner()) {
+          <app-editable-text
+            [value]="s.name"
+            placeholder="Name this hunt..."
+            [allowEmpty]="false"
+            displayClass="text-3xl font-bold text-[color:var(--color-text-secondary)]"
+            inputClass="text-3xl font-bold text-[color:var(--color-text-primary)]"
+            (save)="onNameSave($event)"
+          />
+        } @else {
+          <h1 class="text-3xl font-bold text-[color:var(--color-text-secondary)]">
+            {{ s.name ?? 'Unnamed hunt' }}
+          </h1>
+        }
       } @else {
         <h1 class="text-3xl font-bold text-[color:var(--color-text-secondary)]">Hunt Details</h1>
       }
@@ -41,20 +47,28 @@
   } @else if (session(); as s) {
     <app-hunt-summary [session]="s" />
 
-    <!-- Editable comment -->
-    <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
-      <header class="mb-3 flex items-center gap-2">
-        <h2 class="text-lg font-semibold">Notes</h2>
-      </header>
-      <app-editable-text
-        [value]="s.comment"
-        placeholder="+ Add a comment about this hunt"
-        [multiline]="true"
-        displayClass="text-sm italic text-[color:var(--color-text-secondary)] whitespace-pre-wrap"
-        inputClass="text-sm"
-        (save)="onCommentSave($event)"
-      />
-    </section>
+    <!-- Comment: editável só pro dono. Pra não-donos só aparece se já existe. -->
+    @if (isOwner() || s.comment) {
+      <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
+        <header class="mb-3 flex items-center gap-2">
+          <h2 class="text-lg font-semibold">Notes</h2>
+        </header>
+        @if (isOwner()) {
+          <app-editable-text
+            [value]="s.comment"
+            placeholder="+ Add a comment about this hunt"
+            [multiline]="true"
+            displayClass="text-sm italic text-[color:var(--color-text-secondary)] whitespace-pre-wrap"
+            inputClass="text-sm"
+            (save)="onCommentSave($event)"
+          />
+        } @else {
+          <p class="whitespace-pre-wrap text-sm italic text-[color:var(--color-text-secondary)]">
+            {{ s.comment }}
+          </p>
+        }
+      </section>
+    }
 
     <app-party-members [members]="s.members" />
 

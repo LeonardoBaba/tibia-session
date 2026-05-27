@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../core/auth/auth.service';
 import { SessionApiService } from '../../core/services/session-api.service';
 import { SessionDetail } from '../../core/models/session.model';
 import { EditableText } from '../../shared/components/editable-text/editable-text';
@@ -29,11 +30,20 @@ export class HuntDetailPage {
 
   private readonly api = inject(SessionApiService);
   private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
 
   protected readonly session = signal<SessionDetail | null>(null);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly saving = signal(false);
+
+  /** True quando o usuário logado é o dono da hunt — só ele pode editar. */
+  protected readonly isOwner = computed(() => {
+    const user = this.auth.currentUser();
+    const session = this.session();
+    if (!user || !session?.ownerDiscordId) return false;
+    return user.discordId === session.ownerDiscordId;
+  });
 
   protected readonly damageEntries = computed<RankingEntry[]>(() =>
     (this.session()?.members ?? [])

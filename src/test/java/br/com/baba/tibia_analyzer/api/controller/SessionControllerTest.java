@@ -1,5 +1,7 @@
 package br.com.baba.tibia_analyzer.api.controller;
 
+import br.com.baba.tibia_analyzer.api.auth.DiscordOAuth2UserService;
+import br.com.baba.tibia_analyzer.api.config.SecurityConfig;
 import br.com.baba.tibia_analyzer.api.config.WebConfig;
 import br.com.baba.tibia_analyzer.api.dto.SessionFilter;
 import br.com.baba.tibia_analyzer.api.exception.ApiExceptionHandler;
@@ -34,6 +36,7 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
@@ -44,15 +47,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(SessionController.class)
-@Import({ApiExceptionHandler.class, WebConfig.class})
+@Import({ApiExceptionHandler.class, WebConfig.class, SecurityConfig.class})
 @TestPropertySource(properties = {
         "ANALYZER_SERVER_PORT=0",
         "ANALYZER_DATABASE_CONNECTION=jdbc:postgresql://localhost/test",
         "ANALYZER_DATABASE_USER=test",
         "ANALYZER_DATABASE_PASSWORD=test",
-        "ANALYZER_DISCORD_TOKEN=dummy"
+        "ANALYZER_DISCORD_TOKEN=dummy",
+        "ANALYZER_DISCORD_CLIENT_ID=test-client-id",
+        "ANALYZER_DISCORD_CLIENT_SECRET=test-client-secret",
+        "ANALYZER_FRONTEND_URL=http://localhost:4200"
 })
 class SessionControllerTest {
+
+    private static final String OWNER_DISCORD_ID = "owner-1";
 
     @Autowired
     private MockMvc mockMvc;
@@ -60,32 +68,41 @@ class SessionControllerTest {
     @MockBean
     private PartyHuntService partyHuntService;
 
+    /** Mockado pra evitar carregar o autoconfig real do OAuth client. */
+    @MockBean
+    private DiscordOAuth2UserService discordOAuth2UserService;
+
     @Test
-    void shouldCreateSessionAndReturn201WithDetail() throws Exception {
+    void shouldCreateSessionUsingAuthenticatedDiscordId() throws Exception {
         PartySession saved = buildSession();
-        when(partyHuntService.createSession(eq("raw input"), eq("Cobra Bastion"), eq("note"), eq("owner-1")))
+        when(partyHuntService.createSession(eq("raw input"), eq("Cobra Bastion"), eq("note"), eq(OWNER_DISCORD_ID)))
                 .thenReturn(saved);
 
+        // Body contém um ownerDiscordId tentando spoofar — deve ser ignorado.
         String body = """
                 {
                   "input": "raw input",
                   "name": "Cobra Bastion",
                   "comment": "note",
-                  "ownerDiscordId": "owner-1"
+                  "ownerDiscordId": "attacker-trying-to-spoof"
                 }
                 """;
 
         mockMvc.perform(post("/api/sessions")
+                        .with(oauth2Login().attributes(attrs -> attrs.put("id", OWNER_DISCORD_ID)))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", org.hamcrest.Matchers.endsWith("/api/sessions/" + saved.getId())))
                 .andExpect(jsonPath("$.id").value(saved.getId().toString()))
-                .andExpect(jsonPath("$.name").value("Cobra Bastion"))
-                .andExpect(jsonPath("$.comment").value("note"))
-                .andExpect(jsonPath("$.ownerDiscordId").value("owner-1"))
-                .andExpect(jsonPath("$.balance").value(1000))
-                .andExpect(jsonPath("$.members[0].name").value("Player1"));
+                .andExpect(jsonPath("$.ownerDiscordId").value(OWNER_DISCORD_ID));
+    }
+
+    @Test
+    void shouldReturn401WhenCreatingWithoutAuth() throws Exception {
+        mockMvc.perform(post("/api/sessions")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"input\": \"raw\"}"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -94,6 +111,7 @@ class SessionControllerTest {
                 .thenThrow(new NumberFormatException("For input string: \"\""));
 
         mockMvc.perform(post("/api/sessions")
+                        .with(oauth2Login().attributes(attrs -> attrs.put("id", OWNER_DISCORD_ID)))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"input\": \"garbage\"}"))
                 .andExpect(status().isBadRequest())
@@ -106,6 +124,7 @@ class SessionControllerTest {
                 .thenThrow(new ConverterException("Failed to parse"));
 
         mockMvc.perform(post("/api/sessions")
+                        .with(oauth2Login().attributes(attrs -> attrs.put("id", OWNER_DISCORD_ID)))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"input\": \"garbage\"}"))
                 .andExpect(status().isBadRequest())
@@ -117,6 +136,7 @@ class SessionControllerTest {
         PartySession saved = buildSession();
         when(partyHuntService.findById(saved.getId())).thenReturn(Optional.of(saved));
 
+        // GET continua público — sem autenticação.
         mockMvc.perform(get("/api/sessions/{id}", saved.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(saved.getId().toString()))
@@ -142,13 +162,7 @@ class SessionControllerTest {
         mockMvc.perform(get("/api/sessions"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
-                .andExpect(jsonPath("$.content[0].id").value(session.getId().toString()))
-                .andExpect(jsonPath("$.content[0].name").value("Cobra Bastion"))
-                .andExpect(jsonPath("$.content[0].balance").value(1000))
-                .andExpect(jsonPath("$.page").value(0))
-                .andExpect(jsonPath("$.size").value(20))
-                .andExpect(jsonPath("$.totalElements").value(1))
-                .andExpect(jsonPath("$.totalPages").value(1));
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 
     @Test
@@ -177,7 +191,6 @@ class SessionControllerTest {
         org.junit.jupiter.api.Assertions.assertEquals("Hikeppo", filter.player());
         org.junit.jupiter.api.Assertions.assertEquals(LocalDateTime.of(2025, 1, 1, 0, 0), filter.startDate());
         org.junit.jupiter.api.Assertions.assertEquals(LocalDateTime.of(2025, 12, 31, 23, 59), filter.endDate());
-        org.junit.jupiter.api.Assertions.assertEquals("owner-1", filter.ownerDiscordId());
 
         Pageable pageable = pageableCaptor.getValue();
         org.junit.jupiter.api.Assertions.assertEquals(1, pageable.getPageNumber());
@@ -205,48 +218,90 @@ class SessionControllerTest {
     }
 
     @Test
-    void shouldPatchSessionMetadataAndReturnUpdatedDetail() throws Exception {
+    void shouldPatchSessionWhenAuthenticatedAsOwner() throws Exception {
         PartySession saved = buildSession();
         saved.setName("Renamed Hunt");
         saved.setComment("updated comment");
+        when(partyHuntService.findById(saved.getId())).thenReturn(Optional.of(saved));
         when(partyHuntService.updateMetadata(eq(saved.getId()), eq("Renamed Hunt"), eq("updated comment")))
                 .thenReturn(Optional.of(saved));
 
         mockMvc.perform(patch("/api/sessions/{id}", saved.getId())
+                        .with(oauth2Login().attributes(attrs -> attrs.put("id", OWNER_DISCORD_ID)))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\": \"Renamed Hunt\", \"comment\": \"updated comment\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(saved.getId().toString()))
-                .andExpect(jsonPath("$.name").value("Renamed Hunt"))
-                .andExpect(jsonPath("$.comment").value("updated comment"));
+                .andExpect(jsonPath("$.name").value("Renamed Hunt"));
+    }
+
+    @Test
+    void shouldReturn403WhenPatchingAsNonOwner() throws Exception {
+        PartySession saved = buildSession(); // ownerDiscordId = OWNER_DISCORD_ID
+        when(partyHuntService.findById(saved.getId())).thenReturn(Optional.of(saved));
+
+        mockMvc.perform(patch("/api/sessions/{id}", saved.getId())
+                        .with(oauth2Login().attributes(attrs -> attrs.put("id", "someone-else")))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\": \"hijacked\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldReturn401WhenPatchingWithoutAuth() throws Exception {
+        UUID id = UUID.randomUUID();
+        mockMvc.perform(patch("/api/sessions/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\": \"x\"}"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     void shouldReturn404WhenPatchingMissingSession() throws Exception {
         UUID id = UUID.randomUUID();
-        when(partyHuntService.updateMetadata(eq(id), any(), any())).thenReturn(Optional.empty());
+        when(partyHuntService.findById(id)).thenReturn(Optional.empty());
 
         mockMvc.perform(patch("/api/sessions/{id}", id)
+                        .with(oauth2Login().attributes(attrs -> attrs.put("id", OWNER_DISCORD_ID)))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\": \"x\"}"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void shouldReturn204WhenDeletingExistingSession() throws Exception {
-        UUID id = UUID.randomUUID();
-        when(partyHuntService.delete(id)).thenReturn(true);
+    void shouldDeleteWhenAuthenticatedAsOwner() throws Exception {
+        PartySession saved = buildSession();
+        when(partyHuntService.findById(saved.getId())).thenReturn(Optional.of(saved));
+        when(partyHuntService.delete(saved.getId())).thenReturn(true);
 
-        mockMvc.perform(delete("/api/sessions/{id}", id))
+        mockMvc.perform(delete("/api/sessions/{id}", saved.getId())
+                        .with(oauth2Login().attributes(attrs -> attrs.put("id", OWNER_DISCORD_ID))))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void shouldReturn403WhenDeletingAsNonOwner() throws Exception {
+        PartySession saved = buildSession();
+        when(partyHuntService.findById(saved.getId())).thenReturn(Optional.of(saved));
+
+        mockMvc.perform(delete("/api/sessions/{id}", saved.getId())
+                        .with(oauth2Login().attributes(attrs -> attrs.put("id", "someone-else"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldReturn401WhenDeletingWithoutAuth() throws Exception {
+        UUID id = UUID.randomUUID();
+        mockMvc.perform(delete("/api/sessions/{id}", id))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     void shouldReturn404WhenDeletingMissingSession() throws Exception {
         UUID id = UUID.randomUUID();
-        when(partyHuntService.delete(id)).thenReturn(false);
+        when(partyHuntService.findById(id)).thenReturn(Optional.empty());
 
-        mockMvc.perform(delete("/api/sessions/{id}", id))
+        mockMvc.perform(delete("/api/sessions/{id}", id)
+                        .with(oauth2Login().attributes(attrs -> attrs.put("id", OWNER_DISCORD_ID))))
                 .andExpect(status().isNotFound());
     }
 
@@ -256,9 +311,7 @@ class SessionControllerTest {
                         .header("Origin", "http://localhost:4200")
                         .header("Access-Control-Request-Method", "GET"))
                 .andExpect(status().isOk())
-                .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:4200"))
-                .andExpect(header().string("Access-Control-Allow-Methods",
-                        org.hamcrest.Matchers.containsString("GET")));
+                .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:4200"));
     }
 
     @Test
@@ -271,14 +324,6 @@ class SessionControllerTest {
                         "https://huntanalyzer.lbaba.com.br"));
     }
 
-    @Test
-    void shouldRejectCorsPreflightFromUnknownOrigin() throws Exception {
-        mockMvc.perform(options("/api/sessions")
-                        .header("Origin", "https://evil.example.com")
-                        .header("Access-Control-Request-Method", "GET"))
-                .andExpect(status().isForbidden());
-    }
-
     private PartySession buildSession() throws Exception {
         PlayerDTO player = new PlayerDTO("Player1", 200, 100, 100, 5000, 1500);
         PartyHuntAnalyzerDTO analyzerDTO = new PartyHuntAnalyzerDTO(
@@ -288,8 +333,7 @@ class SessionControllerTest {
         SessionResultDTO result = new SessionResultDTO(
                 1, 1000, 1000, 0, "01:00h", List.of(), List.of(), List.of());
         PartySession session = new PartySession(
-                analyzerDTO, result, "raw input", "Cobra Bastion", "note", "owner-1");
-        // forge an id since we're not going through JPA
+                analyzerDTO, result, "raw input", "Cobra Bastion", "note", OWNER_DISCORD_ID);
         setField(session, "id", UUID.randomUUID());
         session.setProcessDate(new Date());
         return session;

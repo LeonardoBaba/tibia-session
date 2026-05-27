@@ -16,6 +16,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -39,12 +41,17 @@ public class SessionController {
     private PartyHuntService partyHuntService;
 
     @PostMapping
-    public ResponseEntity<SessionDetailDTO> create(@RequestBody CreateSessionRequest request) {
+    public ResponseEntity<SessionDetailDTO> create(@RequestBody CreateSessionRequest request,
+                                                   @AuthenticationPrincipal OAuth2User principal) {
+        // Quem cria via API é sempre o usuário autenticado — ignora qualquer
+        // ownerDiscordId que tenha vindo no body pra evitar spoofing.
+        String ownerDiscordId = principal.getAttribute("id");
+
         PartySession saved = partyHuntService.createSession(
                 request.input(),
                 request.name(),
                 request.comment(),
-                request.ownerDiscordId()
+                ownerDiscordId
         );
         SessionDetailDTO body = SessionMapper.toDetail(saved);
 
@@ -66,18 +73,34 @@ public class SessionController {
 
     @PatchMapping("/{id}")
     public ResponseEntity<SessionDetailDTO> update(@PathVariable UUID id,
-                                                   @RequestBody UpdateSessionRequest request) {
-        return partyHuntService.updateMetadata(id, request.name(), request.comment())
-                .map(SessionMapper::toDetail)
-                .map(ResponseEntity::ok)
+                                                   @RequestBody UpdateSessionRequest request,
+                                                   @AuthenticationPrincipal OAuth2User principal) {
+        return partyHuntService.findById(id)
+                .map(existing -> {
+                    if (!isOwner(existing, principal)) {
+                        return ResponseEntity.status(403).<SessionDetailDTO>build();
+                    }
+                    return partyHuntService.updateMetadata(id, request.name(), request.comment())
+                            .map(SessionMapper::toDetail)
+                            .map(ResponseEntity::ok)
+                            .orElseGet(() -> ResponseEntity.notFound().build());
+                })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        return partyHuntService.delete(id)
-                ? ResponseEntity.noContent().build()
-                : ResponseEntity.notFound().build();
+    public ResponseEntity<Void> delete(@PathVariable UUID id,
+                                       @AuthenticationPrincipal OAuth2User principal) {
+        return partyHuntService.findById(id)
+                .map(existing -> {
+                    if (!isOwner(existing, principal)) {
+                        return ResponseEntity.status(403).<Void>build();
+                    }
+                    return partyHuntService.delete(id)
+                            ? ResponseEntity.noContent().<Void>build()
+                            : ResponseEntity.notFound().<Void>build();
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping
@@ -95,5 +118,11 @@ public class SessionController {
         Page<SessionSummaryDTO> page = partyHuntService.list(filter, pageable)
                 .map(SessionMapper::toSummary);
         return PagedResponse.from(page);
+    }
+
+    private boolean isOwner(PartySession session, OAuth2User principal) {
+        if (principal == null) return false;
+        String discordId = principal.getAttribute("id");
+        return discordId != null && discordId.equals(session.getOwnerDiscordId());
     }
 }

@@ -29,6 +29,49 @@
       >
         New Import
       </button>
+
+      @if (auth.isAuthenticated()) {
+        @let user = auth.currentUser()!;
+        <div class="relative">
+          <button
+            type="button"
+            (click)="toggleMenu()"
+            class="flex items-center gap-2 rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-surface)] py-1 pr-3 pl-1 text-xs transition hover:border-[color:var(--color-border-strong)]"
+          >
+            @if (user.avatarUrl) {
+              <img [src]="user.avatarUrl" alt="" class="h-7 w-7 rounded-full object-cover" />
+            } @else {
+              <div class="flex h-7 w-7 items-center justify-center rounded-full bg-[color:var(--color-accent)] text-xs font-bold text-black">
+                {{ (user.username ?? '?').charAt(0).toUpperCase() }}
+              </div>
+            }
+            <span class="font-medium text-[color:var(--color-text-primary)]">
+              {{ user.username ?? user.discordId }}
+            </span>
+          </button>
+          @if (menuOpen()) {
+            <div
+              class="absolute right-0 mt-2 w-44 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface)] py-1 shadow-lg"
+            >
+              <button
+                type="button"
+                (click)="onLogout()"
+                class="block w-full px-3 py-2 text-left text-xs text-[color:var(--color-text-secondary)] transition hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-loss)]"
+              >
+                Sign out
+              </button>
+            </div>
+          }
+        </div>
+      } @else if (auth.loaded()) {
+        <button
+          type="button"
+          (click)="onLogin()"
+          class="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-text-secondary)] transition hover:border-[color:var(--color-accent)] hover:text-[color:var(--color-accent)]"
+        >
+          Login with Discord
+        </button>
+      }
     </div>
   </header>
 
