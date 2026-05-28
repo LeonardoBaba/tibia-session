@@ -22,6 +22,14 @@ services:
     networks:
       - analyzer-network
 
+  # Front estático servido por nginx.
+  frontend:
+    image: ${DOCKER_USERNAME}/analyzer-frontend:latest
+    container_name: analyzer-frontend
+    restart: always
+    networks:
+      - analyzer-network
+
   # Reverse proxy + HTTPS automático (Let's Encrypt).
   caddy:
     image: caddy:2-alpine
@@ -36,6 +44,7 @@ services:
       - caddy_config:/config
     depends_on:
       - app
+      - frontend
     networks:
       - analyzer-network
 

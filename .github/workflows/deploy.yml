@@ -5,7 +5,7 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build-and-push:
+  build-and-push-backend:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout do código
@@ -28,15 +28,34 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build e Push da Imagem Docker
+      - name: Build e Push da Imagem Backend
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/analyzer:latest
 
+  build-and-push-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Login no Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build e Push da Imagem Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/analyzer-frontend:latest
+
   deploy:
-    needs: build-and-push
+    needs: [build-and-push-backend, build-and-push-frontend]
     runs-on: ubuntu-latest
     steps:
       - name: Deploy na VPS via SSH
@@ -49,7 +68,7 @@ jobs:
             # 1. Prepara a pasta
             mkdir -p /root/analyzer
             cd /root/analyzer
-            
+
             # 2. Cria o arquivo .env com os segredos
             echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" > .env
             echo "ANALYZER_DATABASE_USER=${{ secrets.DB_USER }}" >> .env
@@ -57,9 +76,8 @@ jobs:
             echo "ANALYZER_DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" >> .env
             echo "ANALYZER_DISCORD_CLIENT_ID=${{ secrets.DISCORD_CLIENT_ID }}" >> .env
             echo "ANALYZER_DISCORD_CLIENT_SECRET=${{ secrets.DISCORD_CLIENT_SECRET }}" >> .env
-            
+
             # 3. Cria o docker-compose.yml DO ZERO (sobrescreve o antigo/corrompido)
-            # O bloco abaixo escreve o conteúdo exato dentro do arquivo na VPS
             cat <<'EOF' > docker-compose.yml
             version: '3.8'
 
@@ -86,6 +104,13 @@ jobs:
                 networks:
                   - analyzer-network
 
+              frontend:
+                image: ${DOCKER_USERNAME}/analyzer-frontend:latest
+                container_name: analyzer-frontend
+                restart: always
+                networks:
+                  - analyzer-network
+
               caddy:
                 image: caddy:2-alpine
                 container_name: analyzer-caddy
@@ -99,6 +124,7 @@ jobs:
                   - caddy_config:/config
                 depends_on:
                   - app
+                  - frontend
                 networks:
                   - analyzer-network
 
@@ -137,8 +163,13 @@ jobs:
                 encode gzip
                 reverse_proxy app:15600
             }
+
+            huntanalyzer.lbaba.com.br {
+                encode gzip
+                reverse_proxy frontend:80
+            }
             EOF
 
-            # 5. Atualiza a imagem e reinicia os serviços
+            # 5. Atualiza as imagens e reinicia os serviços
             docker compose pull
             docker compose up -d
