@@ -1,15 +1,10 @@
 version: '3.8'
 
 services:
-  # Serviço da sua API (Analyzer)
   app:
     image: ${DOCKER_USERNAME}/analyzer:latest
     container_name: analyzer-app
     restart: always
-    # Porta mantida exposta enquanto valida o subdomínio. Pode remover depois
-    # que o https://api.huntanalyzer.lbaba.com.br estiver funcionando.
-    ports:
-      - "15600:15600"
     environment:
       - ANALYZER_SERVER_PORT=15600
       - ANALYZER_DATABASE_CONNECTION=jdbc:postgresql://db:5432/analyzer
@@ -21,34 +16,16 @@ services:
       - db
     networks:
       - analyzer-network
+      - proxy-net
 
-  # Front estático servido por nginx.
   frontend:
     image: ${DOCKER_USERNAME}/analyzer-frontend:latest
     container_name: analyzer-frontend
     restart: always
     networks:
-      - analyzer-network
+      - proxy-net
 
-  # Reverse proxy + HTTPS automático (Let's Encrypt).
-  caddy:
-    image: caddy:2-alpine
-    container_name: analyzer-caddy
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - app
-      - frontend
-    networks:
-      - analyzer-network
 
-  # Serviço do Banco de Dados (Postgres)
   db:
     image: postgres:16-alpine
     container_name: analyzer-db
@@ -66,9 +43,9 @@ services:
 
 volumes:
   postgres_data:
-  caddy_data:
-  caddy_config:
 
 networks:
   analyzer-network:
     driver: bridge
+  proxy-net:
+    external: true

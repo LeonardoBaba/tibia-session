@@ -86,8 +86,6 @@ jobs:
                 image: ${DOCKER_USERNAME}/analyzer:latest
                 container_name: analyzer-app
                 restart: always
-                ports:
-                  - "15600:15600"
                 environment:
                   - ANALYZER_SERVER_PORT=15600
                   - ANALYZER_DATABASE_CONNECTION=jdbc:postgresql://db:5432/analyzer
@@ -98,38 +96,19 @@ jobs:
                   - ANALYZER_DISCORD_CLIENT_ID=${ANALYZER_DISCORD_CLIENT_ID}
                   - ANALYZER_DISCORD_CLIENT_SECRET=${ANALYZER_DISCORD_CLIENT_SECRET}
                   - ANALYZER_COOKIE_SECURE=true
-                  # Sem o ponto inicial: RFC 6265 (que o Tomcat 10 segue) rejeita
-                  # `.lbaba.com.br`. Sem o ponto o browser ainda envia o cookie pra
-                  # `lbaba.com.br` e todos os subdomínios (huntanalyzer, api.huntanalyzer).
                   - ANALYZER_COOKIE_DOMAIN=lbaba.com.br
                 depends_on:
                   - db
                 networks:
                   - analyzer-network
+                  - proxy-net
 
               frontend:
                 image: ${DOCKER_USERNAME}/analyzer-frontend:latest
                 container_name: analyzer-frontend
                 restart: always
                 networks:
-                  - analyzer-network
-
-              caddy:
-                image: caddy:2-alpine
-                container_name: analyzer-caddy
-                restart: always
-                ports:
-                  - "80:80"
-                  - "443:443"
-                volumes:
-                  - ./Caddyfile:/etc/caddy/Caddyfile:ro
-                  - caddy_data:/data
-                  - caddy_config:/config
-                depends_on:
-                  - app
-                  - frontend
-                networks:
-                  - analyzer-network
+                  - proxy-net
 
               db:
                 image: postgres:16-alpine
@@ -148,34 +127,14 @@ jobs:
 
             volumes:
               postgres_data:
-              caddy_data:
-              caddy_config:
 
             networks:
               analyzer-network:
                 driver: bridge
+              proxy-net:
+                external: true
             EOF
 
-            # 4. Cria o Caddyfile com o reverse proxy + HTTPS automático
-            cat <<'EOF' > Caddyfile
-            {
-                email leobaba111@gmail.com
-            }
-
-            api.huntanalyzer.lbaba.com.br {
-                encode gzip
-                reverse_proxy app:15600
-            }
-
-            huntanalyzer.lbaba.com.br {
-                encode gzip
-                reverse_proxy frontend:80
-            }
-            EOF
-
-            # 5. Atualiza as imagens e reinicia os serviços
+            # 4. Atualiza as imagens e reinicia os serviços
             docker compose pull
             docker compose up -d
-
-            # 6. Força reload do Caddy.
-            docker compose restart caddy
