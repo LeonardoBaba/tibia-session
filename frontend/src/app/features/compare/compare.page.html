@@ -1,10 +1,23 @@
 <section class="flex flex-col gap-6">
   <!-- Header -->
-  <header>
-    <h1 class="text-3xl font-bold text-[color:var(--color-text-secondary)]">Compare</h1>
-    <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
-      Compare multiple sessions side-by-side.
-    </p>
+  <header class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-[color:var(--color-text-secondary)]">Compare</h1>
+      <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
+        Compare multiple sessions side-by-side.
+      </p>
+    </div>
+    @if (canCompare() && !loading() && sessions().length >= 2) {
+      <label class="flex cursor-pointer items-center gap-2 text-xs text-[color:var(--color-text-secondary)] transition hover:text-[color:var(--color-text-primary)]">
+        <input
+          type="checkbox"
+          class="h-4 w-4 cursor-pointer accent-[color:var(--color-accent)]"
+          [checked]="showPerHour()"
+          (change)="togglePerHour($event)"
+        />
+        Compare per hour
+      </label>
+    }
   </header>
 
   @if (!canCompare()) {
@@ -34,18 +47,30 @@
         @for (session of sessions(); track session.id; let i = $index) {
           <a
             [routerLink]="['/hunts', session.id]"
-            class="flex flex-col gap-1 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-4 no-underline text-inherit transition hover:border-[color:var(--color-border-strong)]"
+            class="flex gap-4 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-4 no-underline text-inherit transition hover:border-[color:var(--color-border-strong)]"
           >
-            <p class="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-accent)]">
-              Hunt #{{ i + 1 }}
-            </p>
-            <p class="truncate text-base font-semibold">{{ session.name ?? 'Unnamed hunt' }}</p>
-            <p class="text-xs text-[color:var(--color-text-muted)]">
-              {{ session.sessionDuration ?? '—' }} · {{ session.members.length }} members
-            </p>
-            <p class="mt-1 text-lg font-bold tabular-nums" [class]="balanceClass(session.balance)">
-              {{ session.balance | signedNumber }}
-            </p>
+            <!-- Lado esquerdo: identidade da hunt + balance -->
+            <div class="flex min-w-0 flex-col gap-1">
+              <p class="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-accent)]">
+                Hunt #{{ i + 1 }}
+              </p>
+              <p class="truncate text-base font-semibold">{{ session.name ?? 'Unnamed hunt' }}</p>
+              <p class="text-xs text-[color:var(--color-text-muted)]">
+                {{ session.sessionDuration ?? '—' }} · {{ session.members.length }} members
+              </p>
+              <p class="mt-1 text-lg font-bold tabular-nums" [class]="balanceClass(session.balance)">
+                {{ session.balance | signedNumber }}
+              </p>
+            </div>
+
+            <!-- Lado direito: observação quando existir -->
+            @if (session.comment) {
+              <div class="flex flex-1 items-center border-l border-[color:var(--color-border)] pl-4 min-w-0">
+                <p class="line-clamp-4 text-xs italic text-[color:var(--color-text-secondary)]">
+                  "{{ session.comment }}"
+                </p>
+              </div>
+            }
           </a>
         }
       </div>
@@ -53,7 +78,9 @@
       <!-- Per-player damage -->
       <section class="overflow-x-auto rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
         <header class="mb-4 flex items-center gap-2">
-          <h2 class="text-lg font-semibold">Damage by player</h2>
+          <h2 class="text-lg font-semibold">
+            Damage by player{{ showPerHour() ? ' (per hour)' : '' }}
+          </h2>
           <span class="text-xs text-[color:var(--color-text-muted)]">
             ({{ damageMatrix().length }} players)
           </span>
@@ -67,7 +94,12 @@
               <tr class="border-b border-[color:var(--color-border)]">
                 <th class="px-3 py-2 font-semibold">Player</th>
                 @for (session of sessions(); track session.id; let i = $index) {
-                  <th class="px-3 py-2 font-semibold text-right">Hunt #{{ i + 1 }}</th>
+                  <th class="px-3 py-2 font-semibold text-right">
+                    <div>Hunt #{{ i + 1 }}</div>
+                    <div class="truncate font-normal normal-case text-[color:var(--color-text-secondary)]">
+                      {{ session.name ?? '—' }}
+                    </div>
+                  </th>
                 }
               </tr>
             </thead>
@@ -94,7 +126,9 @@
       <!-- Per-player healing -->
       <section class="overflow-x-auto rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
         <header class="mb-4 flex items-center gap-2">
-          <h2 class="text-lg font-semibold">Healing by player</h2>
+          <h2 class="text-lg font-semibold">
+            Healing by player{{ showPerHour() ? ' (per hour)' : '' }}
+          </h2>
           <span class="text-xs text-[color:var(--color-text-muted)]">
             ({{ healingMatrix().length }} players)
           </span>
@@ -108,7 +142,12 @@
               <tr class="border-b border-[color:var(--color-border)]">
                 <th class="px-3 py-2 font-semibold">Player</th>
                 @for (session of sessions(); track session.id; let i = $index) {
-                  <th class="px-3 py-2 font-semibold text-right">Hunt #{{ i + 1 }}</th>
+                  <th class="px-3 py-2 font-semibold text-right">
+                    <div>Hunt #{{ i + 1 }}</div>
+                    <div class="truncate font-normal normal-case text-[color:var(--color-text-secondary)]">
+                      {{ session.name ?? '—' }}
+                    </div>
+                  </th>
                 }
               </tr>
             </thead>

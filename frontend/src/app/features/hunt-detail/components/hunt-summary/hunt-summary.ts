@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, model } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { SessionDetail } from '../../../../core/models/session.model';
 import { perHour } from '../../../../core/utils/session-duration';
@@ -21,6 +21,18 @@ interface SummaryStat {
 })
 export class HuntSummary {
   readonly session = input.required<SessionDetail>();
+
+  /**
+   * Two-way model: marca quando os rankings devem ser exibidos em valor por hora.
+   * Usa `model()` para que o pai possa observar via `(perHourChange)` ou
+   * `[(perHour)]`.
+   */
+  readonly perHour = model<boolean>(false);
+
+  protected togglePerHour(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.perHour.set(checked);
+  }
 
   protected readonly topDamageMember = computed(() => {
     const members = this.session().members;

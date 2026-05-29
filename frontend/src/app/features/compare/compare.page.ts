@@ -5,6 +5,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { SessionApiService } from '../../core/services/session-api.service';
 import { SessionDetail } from '../../core/models/session.model';
+import { parseDurationToHours } from '../../core/utils/session-duration';
 import { SignedNumberPipe } from '../../shared/pipes/signed-number.pipe';
 
 interface PlayerRow {
@@ -30,6 +31,8 @@ export class ComparePage {
   protected readonly sessions = signal<SessionDetail[]>([]);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
+  /** Toggle controlado pela checkbox no header. */
+  protected readonly showPerHour = signal(false);
 
   protected readonly parsedIds = computed<string[]>(() => {
     const raw = this.ids();
@@ -67,14 +70,23 @@ export class ComparePage {
     return 'text-[color:var(--color-text-secondary)]';
   }
 
+  protected togglePerHour(event: Event): void {
+    this.showPerHour.set((event.target as HTMLInputElement).checked);
+  }
+
   private buildPlayerMatrix(metric: 'damage' | 'healing'): PlayerRow[] {
     const list = this.sessions();
+    const perHour = this.showPerHour();
     const playerMap = new Map<string, (number | null)[]>();
 
     list.forEach((session, huntIdx) => {
+      // Cada hunt tem duração própria, então o fator de divisão é por sessão.
+      const hours = perHour ? parseDurationToHours(session.sessionDuration) : null;
+
       session.members.forEach((member) => {
         const row = playerMap.get(member.name) ?? new Array(list.length).fill(null);
-        row[huntIdx] = member[metric];
+        const raw = member[metric];
+        row[huntIdx] = perHour && hours ? Math.round(raw / hours) : raw;
         playerMap.set(member.name, row);
       });
     });

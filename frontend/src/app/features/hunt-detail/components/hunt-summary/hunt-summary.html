@@ -1,7 +1,16 @@
 @let s = session();
 <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
-  <header class="mb-5 flex items-center gap-2">
+  <header class="mb-5 flex items-center justify-between gap-2">
     <h2 class="text-lg font-semibold">Hunt Summary</h2>
+    <label class="flex cursor-pointer items-center gap-2 text-xs text-[color:var(--color-text-secondary)] transition hover:text-[color:var(--color-text-primary)]">
+      <input
+        type="checkbox"
+        class="h-4 w-4 cursor-pointer accent-[color:var(--color-accent)]"
+        [checked]="perHour()"
+        (change)="togglePerHour($event)"
+      />
+      Show rankings per hour
+    </label>
   </header>
 
   <dl class="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">

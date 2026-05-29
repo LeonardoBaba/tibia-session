@@ -45,7 +45,7 @@
       {{ error() }}
     </div>
   } @else if (session(); as s) {
-    <app-hunt-summary [session]="s" />
+    <app-hunt-summary [session]="s" [(perHour)]="showPerHour" />
 
     <!-- Comment: editável só pro dono. Pra não-donos só aparece se já existe. -->
     @if (isOwner() || s.comment) {
@@ -70,13 +70,28 @@
       </section>
     }
 
-    <app-party-members [members]="s.members" />
-
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
-      <app-ranking-card title="Damage" [entries]="damageEntries()" tone="accent" />
-      <app-ranking-card title="Healing" [entries]="healingEntries()" tone="profit" />
-      <app-ranking-card title="Waste" [entries]="wasteEntries()" tone="loss" />
+      <app-ranking-card
+        [title]="showPerHour() ? 'Damage / h' : 'Damage'"
+        [entries]="damageEntries()"
+        [valueSuffix]="valueSuffix()"
+        tone="accent"
+      />
+      <app-ranking-card
+        [title]="showPerHour() ? 'Healing / h' : 'Healing'"
+        [entries]="healingEntries()"
+        [valueSuffix]="valueSuffix()"
+        tone="profit"
+      />
+      <app-ranking-card
+        [title]="showPerHour() ? 'Waste / h' : 'Waste'"
+        [entries]="wasteEntries()"
+        [valueSuffix]="valueSuffix()"
+        tone="loss"
+      />
     </div>
+
+    <app-party-members [members]="s.members" />
 
     <app-payment-distribution [transfers]="s.transfers" />
   }

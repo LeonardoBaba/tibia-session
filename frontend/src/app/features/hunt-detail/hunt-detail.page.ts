@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { SessionApiService } from '../../core/services/session-api.service';
 import { SessionDetail } from '../../core/models/session.model';
+import { perHour as toPerHour } from '../../core/utils/session-duration';
 import { EditableText } from '../../shared/components/editable-text/editable-text';
 import { HuntSummary } from './components/hunt-summary/hunt-summary';
 import { PartyMembers } from './components/party-members/party-members';
@@ -36,6 +37,8 @@ export class HuntDetailPage {
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly saving = signal(false);
+  /** Toggle controlado pela checkbox no HuntSummary. */
+  protected readonly showPerHour = signal(false);
 
   /** True quando o usuário logado é o dono da hunt — só ele pode editar. */
   protected readonly isOwner = computed(() => {
@@ -46,22 +49,38 @@ export class HuntDetailPage {
   });
 
   protected readonly damageEntries = computed<RankingEntry[]>(() =>
-    (this.session()?.members ?? [])
-      .filter((m) => m.damage > 0)
-      .map((m) => ({ name: m.name, value: m.damage })),
+    this.buildEntries((m) => m.damage),
   );
 
   protected readonly healingEntries = computed<RankingEntry[]>(() =>
-    (this.session()?.members ?? [])
-      .filter((m) => m.healing > 0)
-      .map((m) => ({ name: m.name, value: m.healing })),
+    this.buildEntries((m) => m.healing),
   );
 
   protected readonly wasteEntries = computed<RankingEntry[]>(() =>
-    (this.session()?.members ?? [])
-      .filter((m) => m.supplies > 0)
-      .map((m) => ({ name: m.name, value: m.supplies })),
+    this.buildEntries((m) => m.supplies),
   );
+
+  /** Sufixo a anexar nos valores quando estamos no modo por hora. */
+  protected readonly valueSuffix = computed(() => (this.showPerHour() ? '/h' : null));
+
+  /**
+   * Constrói as entries de ranking aplicando a transformação por hora quando
+   * o toggle estiver ativo. Se a duração for inválida cai pra valor absoluto.
+   */
+  private buildEntries(metric: (member: SessionDetail['members'][number]) => number): RankingEntry[] {
+    const session = this.session();
+    if (!session) return [];
+    const list = session.members.filter((m) => metric(m) > 0);
+
+    if (!this.showPerHour()) {
+      return list.map((m) => ({ name: m.name, value: metric(m) }));
+    }
+
+    return list.map((m) => {
+      const ph = toPerHour(metric(m), session.sessionDuration);
+      return { name: m.name, value: ph === null ? metric(m) : Math.round(ph) };
+    });
+  }
 
   constructor() {
     effect(() => {
