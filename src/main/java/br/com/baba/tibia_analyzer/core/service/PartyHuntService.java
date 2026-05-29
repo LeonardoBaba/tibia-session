@@ -66,6 +66,18 @@ public class PartyHuntService {
         return dao.findById(id);
     }
 
+    /**
+     * Processa o input do analyzer sem persistir nada. Devolve uma
+     * `PartySession` transient (sem id) que o controller mapeia para o mesmo
+     * `SessionDetailDTO` do endpoint normal — assim o front reaproveita os
+     * mesmos componentes para mostrar a preview.
+     */
+    public PartySession previewSession(String input) {
+        PartyHuntAnalyzerDTO analyzerDTO = partyHuntAnalyzerConverter.getAnalyzer(input);
+        SessionResultDTO result = partyHuntSplitter.split(analyzerDTO);
+        return new PartySession(analyzerDTO, result, input, null, null, null);
+    }
+
     public Page<PartySession> list(SessionFilter filter, Pageable pageable) {
         return dao.findAll(PartySessionSpecifications.fromFilter(filter), pageable);
     }

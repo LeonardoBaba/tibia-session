@@ -98,6 +98,37 @@ class SessionControllerTest {
     }
 
     @Test
+    void shouldPreviewSessionWithoutAuthAndReturnTransientDetail() throws Exception {
+        PartySession transientSession = buildSession();
+        // Remove o id pra simular entidade não persistida.
+        setField(transientSession, "id", null);
+        transientSession.setName(null);
+        transientSession.setComment(null);
+        transientSession.setOwnerDiscordId(null);
+        when(partyHuntService.previewSession("raw input")).thenReturn(transientSession);
+
+        mockMvc.perform(post("/api/sessions/preview")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"input\": \"raw input\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").doesNotExist())
+                .andExpect(jsonPath("$.name").doesNotExist())
+                .andExpect(jsonPath("$.balance").value(1000))
+                .andExpect(jsonPath("$.members[0].name").value("Player1"));
+    }
+
+    @Test
+    void shouldReturn400WhenPreviewParserFails() throws Exception {
+        when(partyHuntService.previewSession(org.mockito.ArgumentMatchers.anyString()))
+                .thenThrow(new ConverterException("Failed to parse"));
+
+        mockMvc.perform(post("/api/sessions/preview")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"input\": \"garbage\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void shouldReturn401WhenCreatingWithoutAuth() throws Exception {
         mockMvc.perform(post("/api/sessions")
                         .contentType(MediaType.APPLICATION_JSON)

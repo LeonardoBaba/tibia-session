@@ -40,6 +40,9 @@ public class SecurityConfig {
                         // `/me` decide internamente entre 200 e 401, e logout
                         // pode ser chamado a qualquer hora.
                         .requestMatchers("/api/auth/me", "/api/auth/logout").permitAll()
+                        // Preview não persiste nada — público. Precisa vir
+                        // antes do matcher de POST /api/sessions.
+                        .requestMatchers(HttpMethod.POST, "/api/sessions/preview").permitAll()
                         // Mutações precisam de sessão autenticada.
                         .requestMatchers(HttpMethod.POST, "/api/sessions").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/sessions/**").authenticated()

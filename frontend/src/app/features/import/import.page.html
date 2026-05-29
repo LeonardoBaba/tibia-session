@@ -1,0 +1,108 @@
+<section class="flex flex-col gap-6">
+  <!-- Header -->
+  <header>
+    <nav class="mb-2 text-xs text-[color:var(--color-text-muted)]">
+      <a routerLink="/hunts" class="transition hover:text-[color:var(--color-accent)]">Hunt History</a>
+      <span class="mx-1">/</span>
+      <span class="text-[color:var(--color-text-secondary)]">Import</span>
+    </nav>
+    <h1 class="text-3xl font-bold text-[color:var(--color-text-secondary)]">Import a hunt</h1>
+    <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
+      Paste your Tibia Party Hunt Analyzer text below.
+      @if (auth.isAuthenticated()) {
+        It will be processed and saved to your history.
+      } @else {
+        You can preview the breakdown without logging in — sign in to save it.
+      }
+    </p>
+  </header>
+
+  <!-- Form -->
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
+    <label class="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+      Session text
+    </label>
+    <textarea
+      rows="14"
+      [value]="input()"
+      (input)="onInputChange($any($event.target).value)"
+      placeholder="Session data: From 2026-01-01, 12:00:00 to 2026-01-01, 14:00:00&#10;Session: 02:00h&#10;Loot Type: Leader&#10;Loot: 1,000,000&#10;Supplies: 400,000&#10;Balance: 600,000&#10;Hikeppo (Leader)&#10;&#9;Loot: 600,000&#10;&#9;Supplies: 200,000&#10;..."
+      class="w-full rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-bg)] p-3 font-mono text-xs outline-none transition focus:border-[color:var(--color-accent)]"
+    ></textarea>
+
+    @if (error()) {
+      <div class="mt-3 rounded-md border border-[color:var(--color-loss)] bg-[color:var(--color-loss)]/10 p-3 text-xs text-[color:var(--color-loss)]">
+        {{ error() }}
+      </div>
+    }
+
+    <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+      <p class="text-xs text-[color:var(--color-text-muted)]">
+        @if (auth.isAuthenticated()) {
+          A sessão será salva como sua.
+        } @else if (auth.loaded()) {
+          Faça login pra salvar — sem login você só consegue ver o resultado nessa tela.
+        }
+      </p>
+      <div class="flex items-center gap-2">
+        @if (preview()) {
+          <button
+            type="button"
+            (click)="reset()"
+            class="rounded-md border border-[color:var(--color-border-strong)] px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-text-secondary)] transition hover:border-[color:var(--color-loss)] hover:text-[color:var(--color-loss)]"
+          >
+            Clear
+          </button>
+        }
+        <button
+          type="button"
+          (click)="onSubmit()"
+          [disabled]="!canSubmit()"
+          class="rounded-md bg-[color:var(--color-accent)] px-5 py-2 text-xs font-semibold uppercase tracking-wide text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          @if (processing()) {
+            Processing…
+          } @else if (auth.isAuthenticated()) {
+            Import
+          } @else {
+            Preview
+          }
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Preview result (só quando não-logado processou com sucesso) -->
+  @if (preview(); as s) {
+    <div class="rounded-md border border-[color:var(--color-accent)] bg-[color:var(--color-accent-soft)] p-3 text-xs text-[color:var(--color-accent)]">
+      Preview only — esta sessão não foi salva. Faça login para gravá-la.
+    </div>
+
+    <app-hunt-summary [session]="s" [(perHour)]="showPerHour" />
+
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <app-ranking-card
+        [title]="showPerHour() ? 'Damage / h' : 'Damage'"
+        [entries]="damageEntries()"
+        [valueSuffix]="valueSuffix()"
+        tone="accent"
+      />
+      <app-ranking-card
+        [title]="showPerHour() ? 'Healing / h' : 'Healing'"
+        [entries]="healingEntries()"
+        [valueSuffix]="valueSuffix()"
+        tone="profit"
+      />
+      <app-ranking-card
+        [title]="showPerHour() ? 'Waste / h' : 'Waste'"
+        [entries]="wasteEntries()"
+        [valueSuffix]="valueSuffix()"
+        tone="loss"
+      />
+    </div>
+
+    <app-party-members [members]="s.members" />
+
+    <app-payment-distribution [transfers]="s.transfers" />
+  }
+</section>

@@ -63,6 +63,17 @@ public class SessionController {
         return ResponseEntity.created(location).body(body);
     }
 
+    /**
+     * Processa o texto do analyzer sem persistir. Endpoint público — usado
+     * pela tela de import quando o usuário não está logado, ou simplesmente
+     * para ver as estatísticas antes de salvar.
+     */
+    @PostMapping("/preview")
+    public SessionDetailDTO preview(@RequestBody CreateSessionRequest request) {
+        PartySession transientSession = partyHuntService.previewSession(request.input());
+        return SessionMapper.toDetail(transientSession);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<SessionDetailDTO> getById(@PathVariable UUID id) {
         return partyHuntService.findById(id)
