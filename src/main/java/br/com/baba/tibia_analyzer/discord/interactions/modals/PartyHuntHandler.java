@@ -35,8 +35,6 @@ public class PartyHuntHandler implements ModalHandler {
         User discordUser = event.getUser();
         String ownerDiscordId = discordUser.getId();
 
-        // Garante que existe row em `users` (mesmo que o usuário nunca tenha
-        // logado no site). Quando ele logar, o avatar/nome serão atualizados.
         userService.upsertFromDiscord(
                 ownerDiscordId,
                 discordUser.getEffectiveName(),

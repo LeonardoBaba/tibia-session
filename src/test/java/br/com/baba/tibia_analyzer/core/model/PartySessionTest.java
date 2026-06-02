@@ -15,7 +15,6 @@ class PartySessionTest {
 
     @Test
     void shouldCreatePartySessionFromDTO() {
-        // Arrange
         LocalDateTime start = LocalDateTime.of(2025, 1, 1, 10, 0, 0);
         LocalDateTime end = LocalDateTime.of(2025, 1, 1, 11, 0, 0);
         PlayerDTO player = new PlayerDTO("Player1", 100, 50, 50, 1000, 500);
@@ -30,10 +29,8 @@ class PartySessionTest {
         );
         String rawInput = "Raw Input String";
 
-        // Act
         PartySession session = new PartySession(dto, result, rawInput, "Cobra Bastion", "Boss died -1", "123456");
 
-        // Assert
         Assertions.assertEquals("Cobra Bastion", session.getName());
         Assertions.assertEquals("Boss died -1", session.getComment());
         Assertions.assertEquals("123456", session.getOwnerDiscordId());
@@ -58,7 +55,6 @@ class PartySessionTest {
 
     @Test
     void shouldAllowNullOptionalFields() {
-        // Arrange
         PartyHuntAnalyzerDTO dto = new PartyHuntAnalyzerDTO(
                 null, null, "00:00h", 0, 0, 0, List.of()
         );
@@ -66,10 +62,8 @@ class PartySessionTest {
                 0, 0, 0, 0, "00:00h", List.of(), List.of(), List.of()
         );
 
-        // Act
         PartySession session = new PartySession(dto, result, "", null, null, null);
 
-        // Assert
         Assertions.assertNull(session.getName());
         Assertions.assertNull(session.getComment());
         Assertions.assertNull(session.getOwnerDiscordId());

@@ -24,7 +24,6 @@ export class RankingCard {
   readonly title = input.required<string>();
   readonly entries = input.required<RankingEntry[]>();
   readonly tone = input<RankingTone>('accent');
-  /** Texto curto opcional (ex.: "gp"). */
   readonly valueSuffix = input<string | null>(null);
 
   protected readonly computed = computed<ComputedEntry[]>(() => {

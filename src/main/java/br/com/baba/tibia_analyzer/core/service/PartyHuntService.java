@@ -46,11 +46,6 @@ public class PartyHuntService {
         return processAndPersist(input, name, comment, ownerDiscordId).saved();
     }
 
-    /**
-     * Faz parsing + divisão + persistência e devolve a entidade salva (com id)
-     * E o resultado da divisão. Útil pra callers (ex.: bot do Discord) que
-     * precisam dos dois — o id pra linkar pra UI, e o resultado pra renderizar.
-     */
     public ProcessedSession processAndPersist(String input,
                                               String name,
                                               String comment,
@@ -66,12 +61,6 @@ public class PartyHuntService {
         return dao.findById(id);
     }
 
-    /**
-     * Processa o input do analyzer sem persistir nada. Devolve uma
-     * `PartySession` transient (sem id) que o controller mapeia para o mesmo
-     * `SessionDetailDTO` do endpoint normal — assim o front reaproveita os
-     * mesmos componentes para mostrar a preview.
-     */
     public PartySession previewSession(String input) {
         PartyHuntAnalyzerDTO analyzerDTO = partyHuntAnalyzerConverter.getAnalyzer(input);
         SessionResultDTO result = partyHuntSplitter.split(analyzerDTO);

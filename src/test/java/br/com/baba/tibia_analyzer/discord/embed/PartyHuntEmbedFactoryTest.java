@@ -20,7 +20,6 @@ class PartyHuntEmbedFactoryTest {
 
     @Test
     void shouldBuildEmbedFromResult() {
-        // Arrange
         SessionResultDTO result = new SessionResultDTO(
                 2, 1_178_905, 589_452, 2_034_616, "01:05h",
                 List.of(new PlayerStatDTO("Hikeppo", 100, 56.24),
@@ -30,10 +29,8 @@ class PartyHuntEmbedFactoryTest {
                 List.of(new AdjustmentDTO("Hikeppo", "Volta Mcfish", 507442))
         );
 
-        // Act
         MessageEmbed embed = factory.build(result, SESSION_ID);
 
-        // Assert
         Assertions.assertEquals("Party Hunt Session – 2 members", embed.getTitle());
 
         String description = embed.getDescription();
@@ -51,7 +48,6 @@ class PartyHuntEmbedFactoryTest {
         Assertions.assertNotNull(embed.getFooter());
         Assertions.assertEquals("01:05h hunt", embed.getFooter().getText());
 
-        // Lucro positivo: faixa verde.
         Assertions.assertEquals(new Color(0x2ECC71), embed.getColor());
     }
 

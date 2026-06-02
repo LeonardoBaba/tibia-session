@@ -26,7 +26,6 @@ import { RankingCard, RankingEntry } from './components/ranking-card/ranking-car
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HuntDetailPage {
-  /** Vem da rota `/hunts/:id` graças ao `withComponentInputBinding()`. */
   readonly id = input.required<string>();
 
   private readonly api = inject(SessionApiService);
@@ -37,10 +36,8 @@ export class HuntDetailPage {
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly saving = signal(false);
-  /** Toggle controlado pela checkbox no HuntSummary. */
   protected readonly showPerHour = signal(false);
 
-  /** True quando o usuário logado é o dono da hunt — só ele pode editar. */
   protected readonly isOwner = computed(() => {
     const user = this.auth.currentUser();
     const session = this.session();
@@ -60,13 +57,8 @@ export class HuntDetailPage {
     this.buildEntries((m) => m.supplies),
   );
 
-  /** Sufixo a anexar nos valores quando estamos no modo por hora. */
   protected readonly valueSuffix = computed(() => (this.showPerHour() ? '/h' : null));
 
-  /**
-   * Constrói as entries de ranking aplicando a transformação por hora quando
-   * o toggle estiver ativo. Se a duração for inválida cai pra valor absoluto.
-   */
   private buildEntries(metric: (member: SessionDetail['members'][number]) => number): RankingEntry[] {
     const session = this.session();
     if (!session) return [];
@@ -97,7 +89,6 @@ export class HuntDetailPage {
   }
 
   protected onCommentSave(comment: string): void {
-    // Permite limpar (string vazia).
     this.patch({ comment });
   }
 
@@ -116,7 +107,7 @@ export class HuntDetailPage {
       },
       error: (err) => {
         console.error(err);
-        this.error.set('Falha ao salvar.');
+        this.error.set('Failed to save.');
         this.saving.set(false);
       },
     });
@@ -133,9 +124,9 @@ export class HuntDetailPage {
       error: (err) => {
         console.error(err);
         if (err?.status === 404) {
-          this.error.set('Hunt não encontrada.');
+          this.error.set('Hunt not found.');
         } else {
-          this.error.set('Falha ao carregar a sessão.');
+          this.error.set('Failed to load the session.');
         }
         this.loading.set(false);
       },

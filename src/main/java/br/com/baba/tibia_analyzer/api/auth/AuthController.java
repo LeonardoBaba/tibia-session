@@ -22,9 +22,6 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
-    /**
-     * Devolve as informações do usuário autenticado. 401 se não houver sessão.
-     */
     @GetMapping("/me")
     public ResponseEntity<UserDTO> me(@org.springframework.security.core.annotation.AuthenticationPrincipal OAuth2User principal) {
         if (principal == null) {
@@ -40,10 +37,6 @@ public class AuthController {
                 .orElseGet(() -> ResponseEntity.status(401).build());
     }
 
-    /**
-     * Encerra a sessão atual. Não usa o SecurityContextLogoutHandler com
-     * dependências adicionais — simplesmente invalida a HttpSession.
-     */
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
         HttpSession session = request.getSession(false);

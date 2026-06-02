@@ -49,7 +49,6 @@ class PartyHuntServiceTest {
 
     @Test
     void shouldProcessSessionSuccessfully() {
-        // Arrange
         String input = "raw input";
         PartyHuntAnalyzerDTO analyzerDTO = new PartyHuntAnalyzerDTO(
                 null, null, "01:00h", 0, 0, 0, Collections.emptyList()
@@ -62,10 +61,8 @@ class PartyHuntServiceTest {
         when(converter.getAnalyzer(input)).thenReturn(analyzerDTO);
         when(splitter.split(analyzerDTO)).thenReturn(result);
 
-        // Act
         SessionResultDTO returned = service.processSession(input);
 
-        // Assert
         Assertions.assertSame(result, returned);
 
         verify(converter).getAnalyzer(input);
@@ -81,7 +78,6 @@ class PartyHuntServiceTest {
 
     @Test
     void shouldPersistOptionalMetadataWhenProvided() {
-        // Arrange
         String input = "raw input";
         PartyHuntAnalyzerDTO analyzerDTO = new PartyHuntAnalyzerDTO(
                 null, null, "01:00h", 0, 0, 0, Collections.emptyList()
@@ -94,10 +90,8 @@ class PartyHuntServiceTest {
         when(converter.getAnalyzer(input)).thenReturn(analyzerDTO);
         when(splitter.split(analyzerDTO)).thenReturn(result);
 
-        // Act
         service.processSession(input, "Cobra Bastion", "Boss died -1", "discord-123");
 
-        // Assert
         ArgumentCaptor<PartySession> captor = ArgumentCaptor.forClass(PartySession.class);
         verify(dao).save(captor.capture());
         PartySession saved = captor.getValue();
@@ -108,7 +102,6 @@ class PartyHuntServiceTest {
 
     @Test
     void shouldReturnSavedSessionWhenCreatingSession() {
-        // Arrange
         String input = "raw input";
         PartyHuntAnalyzerDTO analyzerDTO = new PartyHuntAnalyzerDTO(
                 null, null, "01:00h", 0, 0, 0, Collections.emptyList()
@@ -123,10 +116,8 @@ class PartyHuntServiceTest {
         when(splitter.split(analyzerDTO)).thenReturn(result);
         when(dao.save(any(PartySession.class))).thenReturn(persisted);
 
-        // Act
         PartySession returned = service.createSession(input, "Hunt", "ok", "owner-1");
 
-        // Assert
         Assertions.assertSame(persisted, returned);
     }
 

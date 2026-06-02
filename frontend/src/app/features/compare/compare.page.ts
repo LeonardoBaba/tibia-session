@@ -23,7 +23,6 @@ interface PlayerRow {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ComparePage {
-  /** `?ids=uuid1,uuid2,...` — vinculado via `withComponentInputBinding()`. */
   readonly ids = input<string | undefined>(undefined);
 
   private readonly api = inject(SessionApiService);
@@ -31,7 +30,6 @@ export class ComparePage {
   protected readonly sessions = signal<SessionDetail[]>([]);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
-  /** Toggle controlado pela checkbox no header. */
   protected readonly showPerHour = signal(false);
 
   protected readonly parsedIds = computed<string[]>(() => {
@@ -80,7 +78,6 @@ export class ComparePage {
     const playerMap = new Map<string, (number | null)[]>();
 
     list.forEach((session, huntIdx) => {
-      // Cada hunt tem duração própria, então o fator de divisão é por sessão.
       const hours = perHour ? parseDurationToHours(session.sessionDuration) : null;
 
       session.members.forEach((member) => {
@@ -112,15 +109,16 @@ export class ComparePage {
       next: (results) => {
         const ok = results.filter((s): s is SessionDetail => s !== null);
         if (ok.length < ids.length) {
+          const missing = ids.length - ok.length;
           this.error.set(
-            `${ids.length - ok.length} sessão(ões) não encontrada(s) — exibindo as restantes.`,
+            `${missing} session${missing > 1 ? 's' : ''} not found — showing the rest.`,
           );
         }
         this.sessions.set(ok);
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Falha ao carregar as sessões.');
+        this.error.set('Failed to load sessions.');
         this.loading.set(false);
       },
     });

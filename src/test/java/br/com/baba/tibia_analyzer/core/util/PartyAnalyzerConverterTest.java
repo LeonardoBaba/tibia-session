@@ -18,14 +18,11 @@ class PartyAnalyzerConverterTest {
 
     @Test
     void shouldConvertTextFileToAnalyzerDTO() throws IOException {
-        // Arrange
         Path path = Paths.get("src/test/resources/analyzer.txt");
         String input = Files.readString(path);
 
-        // Act
         PartyHuntAnalyzerDTO result = converter.getAnalyzer(input);
 
-        // Assert
         Assertions.assertNotNull(result);
         Assertions.assertEquals(LocalDateTime.of(2025, 12, 16, 12, 13, 38), result.startTime());
         Assertions.assertEquals(LocalDateTime.of(2025, 12, 16, 13, 43, 29), result.endTime());

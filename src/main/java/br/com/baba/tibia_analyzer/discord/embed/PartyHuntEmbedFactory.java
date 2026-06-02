@@ -30,7 +30,6 @@ public class PartyHuntEmbedFactory {
     private final String frontendUrl;
 
     public PartyHuntEmbedFactory(@Value("${analyzer.frontend.url}") String frontendUrl) {
-        // Remove barra final pra evitar "//hunts/..." quando concatenar.
         this.frontendUrl = frontendUrl == null ? null : frontendUrl.replaceAll("/+$", "");
     }
 

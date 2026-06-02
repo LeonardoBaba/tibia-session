@@ -8,15 +8,6 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-/**
- * Após a Spring trocar o `code` por um access token e buscar o user-info no
- * `https://discord.com/api/users/@me`, esta classe garante que o usuário esteja
- * persistido na nossa tabela `users` (upsert) antes da sessão ser criada.
- *
- * O `username-attribute` configurado é `id`, então o `principal.getName()`
- * passa a ser o Discord snowflake — exatamente o que usamos como
- * `ownerDiscordId` em `PartySession`.
- */
 @Service
 public class DiscordOAuth2UserService extends DefaultOAuth2UserService {
 

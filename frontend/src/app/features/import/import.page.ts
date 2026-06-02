@@ -34,7 +34,6 @@ export class ImportPage {
   protected readonly processing = signal(false);
   protected readonly preview = signal<SessionDetail | null>(null);
   protected readonly error = signal<string | null>(null);
-  /** Toggle controlado pela checkbox no HuntSummary do preview. */
   protected readonly showPerHour = signal(false);
 
   protected readonly canSubmit = computed(
@@ -66,7 +65,6 @@ export class ImportPage {
     this.error.set(null);
 
     if (this.auth.isAuthenticated()) {
-      // Logado → persiste e redireciona pro detail.
       this.api.create({ input: text }).subscribe({
         next: (saved) => {
           this.processing.set(false);
@@ -75,7 +73,6 @@ export class ImportPage {
         error: (err) => this.handleError(err),
       });
     } else {
-      // Não logado → preview inline.
       this.api.preview(text).subscribe({
         next: (result) => {
           this.preview.set(result);

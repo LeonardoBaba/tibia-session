@@ -68,7 +68,6 @@ class SessionControllerTest {
     @MockBean
     private PartyHuntService partyHuntService;
 
-    /** Mockado pra evitar carregar o autoconfig real do OAuth client. */
     @MockBean
     private DiscordOAuth2UserService discordOAuth2UserService;
 
@@ -78,7 +77,6 @@ class SessionControllerTest {
         when(partyHuntService.createSession(eq("raw input"), eq("Cobra Bastion"), eq("note"), eq(OWNER_DISCORD_ID)))
                 .thenReturn(saved);
 
-        // Body contém um ownerDiscordId tentando spoofar — deve ser ignorado.
         String body = """
                 {
                   "input": "raw input",
@@ -100,7 +98,6 @@ class SessionControllerTest {
     @Test
     void shouldPreviewSessionWithoutAuthAndReturnTransientDetail() throws Exception {
         PartySession transientSession = buildSession();
-        // Remove o id pra simular entidade não persistida.
         setField(transientSession, "id", null);
         transientSession.setName(null);
         transientSession.setComment(null);
@@ -167,7 +164,6 @@ class SessionControllerTest {
         PartySession saved = buildSession();
         when(partyHuntService.findById(saved.getId())).thenReturn(Optional.of(saved));
 
-        // GET continua público — sem autenticação.
         mockMvc.perform(get("/api/sessions/{id}", saved.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(saved.getId().toString()))
@@ -267,7 +263,7 @@ class SessionControllerTest {
 
     @Test
     void shouldReturn403WhenPatchingAsNonOwner() throws Exception {
-        PartySession saved = buildSession(); // ownerDiscordId = OWNER_DISCORD_ID
+        PartySession saved = buildSession();
         when(partyHuntService.findById(saved.getId())).thenReturn(Optional.of(saved));
 
         mockMvc.perform(patch("/api/sessions/{id}", saved.getId())

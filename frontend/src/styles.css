@@ -1,9 +1,5 @@
 @import 'tailwindcss';
 
-/* ---------------------------------------------------------------------------
- * Design tokens — variáveis usadas tanto pelo Tailwind (via @theme) quanto
- * por componentes que precisem do mesmo valor em SCSS.
- * ------------------------------------------------------------------------- */
 @theme {
   --color-bg: #0a0a0d;
   --color-surface: #15151a;

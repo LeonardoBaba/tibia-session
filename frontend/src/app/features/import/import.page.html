@@ -1,5 +1,4 @@
 <section class="flex flex-col gap-6">
-  <!-- Header -->
   <header>
     <nav class="mb-2 text-xs text-[color:var(--color-text-muted)]">
       <a routerLink="/hunts" class="transition hover:text-[color:var(--color-accent)]">Hunt History</a>
@@ -17,7 +16,6 @@
     </p>
   </header>
 
-  <!-- Form -->
   <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-5">
     <label class="mb-2 block text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
       Session text
@@ -39,9 +37,9 @@
     <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
       <p class="text-xs text-[color:var(--color-text-muted)]">
         @if (auth.isAuthenticated()) {
-          A sessão será salva como sua.
+          The session will be saved to your history.
         } @else if (auth.loaded()) {
-          Faça login pra salvar — sem login você só consegue ver o resultado nessa tela.
+          Login to save — without login you can only see the result on this screen.
         }
       </p>
       <div class="flex items-center gap-2">
@@ -72,10 +70,9 @@
     </div>
   </section>
 
-  <!-- Preview result (só quando não-logado processou com sucesso) -->
   @if (preview(); as s) {
     <div class="rounded-md border border-[color:var(--color-accent)] bg-[color:var(--color-accent-soft)] p-3 text-xs text-[color:var(--color-accent)]">
-      Preview only — esta sessão não foi salva. Faça login para gravá-la.
+      Preview only — this session was not saved. Login to save it.
     </div>
 
     <app-hunt-summary [session]="s" [(perHour)]="showPerHour" />

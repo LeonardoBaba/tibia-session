@@ -12,14 +12,6 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-/**
- * Texto que pode ser editado in-place: clica e vira input/textarea.
- *
- * - `value` é o valor persistido (o pai controla, não há two-way binding).
- * - Emite `save` quando o usuário confirma. O pai decide o que fazer
- *   (chamar API, atualizar estado etc.) e passa o novo `value` quando voltar.
- * - Cancela com Escape; confirma com Enter (input) ou Ctrl+Enter (textarea).
- */
 @Component({
   selector: 'app-editable-text',
   standalone: true,
@@ -32,11 +24,8 @@ export class EditableText implements AfterViewInit {
   readonly value = input<string | null>(null);
   readonly placeholder = input<string>('Click to edit');
   readonly multiline = input<boolean>(false);
-  /** Classes aplicadas no elemento que mostra o valor no modo view. */
   readonly displayClass = input<string>('');
-  /** Classes aplicadas no input/textarea no modo edit. */
   readonly inputClass = input<string>('');
-  /** Quando falso, não permite confirmar com string vazia. */
   readonly allowEmpty = input<boolean>(true);
 
   readonly save = output<string>();
@@ -51,7 +40,6 @@ export class EditableText implements AfterViewInit {
   @ViewChild('field') private fieldRef?: ElementRef<HTMLInputElement | HTMLTextAreaElement>;
 
   constructor() {
-    // Foca automaticamente o input quando entra no modo de edição.
     effect(() => {
       if (this.editing() && this.fieldRef) {
         queueMicrotask(() => {
@@ -62,9 +50,7 @@ export class EditableText implements AfterViewInit {
     });
   }
 
-  ngAfterViewInit(): void {
-    // no-op: garante que o `@ViewChild` esteja disponível antes do primeiro effect.
-  }
+  ngAfterViewInit(): void {}
 
   protected startEdit(): void {
     this.draft.set(this.value() ?? '');

@@ -5,7 +5,6 @@
   [class.ring-2]="selected()"
   [class.ring-[color:var(--color-accent)]]="selected()"
 >
-  <!-- Top: checkbox + name + date -->
   <header class="flex items-start gap-3">
     <button
       type="button"
@@ -34,7 +33,6 @@
     </div>
   </header>
 
-  <!-- Total balance + member count -->
   <div class="flex items-start justify-between gap-2">
     <div>
       <p class="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
@@ -58,7 +56,6 @@
     </div>
   </div>
 
-  <!-- Loot / Supplies -->
   <div class="grid grid-cols-2 gap-2">
     <div class="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-bg)] px-3 py-2">
       <p class="text-[10px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">Loot</p>
@@ -72,7 +69,6 @@
     </div>
   </div>
 
-  <!-- Comment -->
   @if (s.comment) {
     <p class="border-l-2 border-[color:var(--color-border-strong)] pl-3 text-xs italic text-[color:var(--color-text-secondary)]">
       "{{ s.comment }}"

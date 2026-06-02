@@ -43,8 +43,6 @@ public class SessionController {
     @PostMapping
     public ResponseEntity<SessionDetailDTO> create(@RequestBody CreateSessionRequest request,
                                                    @AuthenticationPrincipal OAuth2User principal) {
-        // Quem cria via API é sempre o usuário autenticado — ignora qualquer
-        // ownerDiscordId que tenha vindo no body pra evitar spoofing.
         String ownerDiscordId = principal.getAttribute("id");
 
         PartySession saved = partyHuntService.createSession(
@@ -63,11 +61,6 @@ public class SessionController {
         return ResponseEntity.created(location).body(body);
     }
 
-    /**
-     * Processa o texto do analyzer sem persistir. Endpoint público — usado
-     * pela tela de import quando o usuário não está logado, ou simplesmente
-     * para ver as estatísticas antes de salvar.
-     */
     @PostMapping("/preview")
     public SessionDetailDTO preview(@RequestBody CreateSessionRequest request) {
         PartySession transientSession = partyHuntService.previewSession(request.input());

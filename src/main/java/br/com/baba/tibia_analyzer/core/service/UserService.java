@@ -14,11 +14,6 @@ public class UserService {
     @Autowired
     private UserDAO dao;
 
-    /**
-     * Garante que existe um row em `users` pro Discord ID informado. Se já
-     * existe, atualiza `username`/`avatarUrl` caso tenham mudado (Discord
-     * permite trocar a qualquer momento). Retorna a entidade persistida.
-     */
     public User upsertFromDiscord(String discordId, String username, String avatarUrl) {
         Optional<User> existing = dao.findByDiscordId(discordId);
         Instant now = Instant.now();

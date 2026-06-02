@@ -36,8 +36,6 @@ export class PaymentDistribution {
 
   protected copyCommand(transfer: SessionTransfer): void {
     const command = `transfer ${transfer.amount} to ${transfer.toPlayer}`;
-    navigator.clipboard?.writeText(command).catch(() => {
-      // ignora silenciosamente se o browser bloquear
-    });
+    navigator.clipboard?.writeText(command).catch(() => {});
   }
 }

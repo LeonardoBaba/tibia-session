@@ -12,8 +12,6 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(
       withFetch(),
-      // A ordem importa: `authInterceptor` precisa rodar antes do
-      // `apiBaseUrlInterceptor` pra ainda enxergar o prefixo `/api`.
       withInterceptors([authInterceptor, apiBaseUrlInterceptor]),
     ),
   ],

@@ -56,7 +56,7 @@ export class HuntHistoryPage implements OnInit {
   protected onCompare(): void {
     const ids = Array.from(this.selectedIds());
     if (ids.length < 2) {
-      this.error.set('Selecione pelo menos 2 sessões para comparar.');
+      this.error.set('Select at least 2 sessions to compare.');
       return;
     }
     this.router.navigate(['/compare'], { queryParams: { ids: ids.join(',') } });

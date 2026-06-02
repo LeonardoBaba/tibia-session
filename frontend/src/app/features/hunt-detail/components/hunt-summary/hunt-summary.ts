@@ -22,11 +22,6 @@ interface SummaryStat {
 export class HuntSummary {
   readonly session = input.required<SessionDetail>();
 
-  /**
-   * Two-way model: marca quando os rankings devem ser exibidos em valor por hora.
-   * Usa `model()` para que o pai possa observar via `(perHourChange)` ou
-   * `[(perHour)]`.
-   */
   readonly perHour = model<boolean>(false);
 
   protected togglePerHour(event: Event): void {

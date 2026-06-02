@@ -18,7 +18,6 @@ export interface HuntFiltersValue {
 })
 export class HuntFilters {
   readonly apply = output<HuntFiltersValue>();
-  readonly compare = output<void>();
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
     name: '',
@@ -29,9 +28,5 @@ export class HuntFilters {
 
   protected onApply(): void {
     this.apply.emit(this.form.getRawValue());
-  }
-
-  protected onCompare(): void {
-    this.compare.emit();
   }
 }

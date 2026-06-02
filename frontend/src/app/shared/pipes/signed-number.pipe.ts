@@ -1,9 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-/**
- * Formata um número com separadores de milhar e prefixa `+` quando positivo,
- * `-` quando negativo. Ex.: `1450200` → `+1,450,200`.
- */
 @Pipe({ name: 'signedNumber' })
 export class SignedNumberPipe implements PipeTransform {
   private readonly formatter = new Intl.NumberFormat('en-US');
