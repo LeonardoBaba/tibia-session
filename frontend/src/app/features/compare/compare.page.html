@@ -52,11 +52,16 @@
                 Hunt #{{ i + 1 }}
               </p>
               <p class="truncate text-base font-semibold">{{ session.name ?? 'Unnamed hunt' }}</p>
+              @if (session.startTime) {
+                <p class="text-xs text-[color:var(--color-text-muted)]">
+                  {{ session.startTime | date: 'yyyy-MM-dd HH:mm' }}
+                </p>
+              }
               <p class="text-xs text-[color:var(--color-text-muted)]">
                 {{ session.sessionDuration ?? '—' }} · {{ session.members.length }} members
               </p>
               <p class="mt-1 text-lg font-bold tabular-nums" [class]="balanceClass(session.balance)">
-                {{ session.balance | signedNumber }}
+                {{ cardBalance(session) | signedNumber }}{{ showPerHour() ? '/h' : '' }}
               </p>
             </div>
 

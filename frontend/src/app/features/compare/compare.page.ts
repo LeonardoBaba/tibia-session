@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -17,7 +17,7 @@ interface PlayerRow {
 @Component({
   selector: 'app-compare-page',
   standalone: true,
-  imports: [DecimalPipe, RouterLink, SignedNumberPipe],
+  imports: [DatePipe, DecimalPipe, RouterLink, SignedNumberPipe],
   templateUrl: './compare.page.html',
   styleUrl: './compare.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -70,6 +70,12 @@ export class ComparePage {
 
   protected togglePerHour(event: Event): void {
     this.showPerHour.set((event.target as HTMLInputElement).checked);
+  }
+
+  protected cardBalance(session: SessionDetail): number {
+    if (!this.showPerHour()) return session.balance;
+    const hours = parseDurationToHours(session.sessionDuration);
+    return hours ? Math.round(session.balance / hours) : session.balance;
   }
 
   private buildPlayerMatrix(metric: 'damage' | 'healing'): PlayerRow[] {
