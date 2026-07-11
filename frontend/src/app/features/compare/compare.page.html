@@ -1,7 +1,7 @@
 <section class="flex flex-col gap-6">
   <header class="flex flex-wrap items-end justify-between gap-4">
     <div>
-      <h1 class="text-3xl font-bold text-[color:var(--color-text-secondary)]">Compare</h1>
+      <h1 class="text-2xl font-bold sm:text-3xl text-[color:var(--color-text-secondary)]">Compare</h1>
       <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
         @if (sessions().length >= 2) {
           Comparing {{ sessions().length }} sessions · pair players across different rosters.
@@ -51,10 +51,7 @@
     }
 
     @if (sessions().length >= 2) {
-      <div
-        class="grid gap-4"
-        [style.grid-template-columns]="'repeat(' + sessions().length + ', minmax(0, 1fr))'"
-      >
+      <div class="session-cards" [style.--card-cols]="sessions().length">
         @for (session of sessions(); track session.id; let i = $index) {
           <a
             [routerLink]="['/hunts', session.id]"
@@ -129,7 +126,7 @@
               </p>
             }
           </div>
-          <div class="flex items-center gap-2.5">
+          <div class="flex flex-wrap items-center gap-2.5">
             <span
               class="whitespace-nowrap rounded-full border border-[color:var(--color-border)] px-[11px] py-[5px] text-[11px] font-semibold tabular-nums text-[color:var(--color-text-secondary)]"
             >
@@ -162,6 +159,8 @@
         </div>
 
         @if (!boardCollapsed()) {
+          <div class="overflow-x-auto">
+          <div class="flex flex-col gap-[18px]" [style.min-width.px]="boardMinWidth()">
           <!-- unassigned trays, aligned to session columns -->
           <div class="grid items-start gap-3" [style.grid-template-columns]="gridCols()">
             <div class="pt-2.5">
@@ -307,6 +306,8 @@
             >
               + Add player group
             </button>
+          </div>
+          </div>
           </div>
         }
       </section>

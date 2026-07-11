@@ -103,6 +103,9 @@ export class ComparePage {
     () => `190px repeat(${this.sessions().length}, minmax(0, 1fr))`,
   );
 
+  /** Min width (px) so the pairing board keeps usable columns and scrolls horizontally on narrow screens. */
+  protected readonly boardMinWidth = computed(() => 190 + this.sessions().length * 180);
+
   protected readonly perHourSuffix = computed(() => (this.showPerHour() ? ' · per hour' : ''));
 
   private readonly charMap = computed(() => {

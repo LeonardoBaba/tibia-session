@@ -1,10 +1,10 @@
 <div class="flex min-h-screen flex-col">
-  <header class="flex h-14 items-center justify-between border-b border-[color:var(--color-border)] bg-[color:var(--color-bg)] px-6">
-    <a routerLink="/hunts" class="text-base font-semibold text-[color:var(--color-accent)]">
+  <header class="flex h-14 items-center justify-between gap-2 border-b border-[color:var(--color-border)] bg-[color:var(--color-bg)] px-4 sm:px-6">
+    <a routerLink="/hunts" (click)="closeMobileMenu()" class="text-base font-semibold text-[color:var(--color-accent)]">
       Tibia analyzer
     </a>
 
-    <nav class="flex items-center gap-6 text-sm font-medium">
+    <nav class="hidden items-center gap-6 text-sm font-medium md:flex">
       <a
         routerLink="/hunts"
         routerLinkActive="text-[color:var(--color-accent)] border-b-2 border-[color:var(--color-accent)]"
@@ -21,7 +21,7 @@
       </a>
     </nav>
 
-    <div class="flex items-center gap-3">
+    <div class="hidden items-center gap-3 md:flex">
       <a
         routerLink="/import"
         class="rounded-md bg-[color:var(--color-accent)] px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-black no-underline transition hover:opacity-90"
@@ -72,10 +72,90 @@
         </button>
       }
     </div>
+
+    <button
+      type="button"
+      (click)="toggleMobileMenu()"
+      [attr.aria-expanded]="mobileMenuOpen()"
+      aria-label="Toggle navigation menu"
+      class="flex h-9 w-9 items-center justify-center rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface)] text-[color:var(--color-text-secondary)] transition hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-primary)] md:hidden"
+    >
+      @if (mobileMenuOpen()) {
+        <svg viewBox="0 0 20 20" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75">
+          <path d="M5 5l10 10M15 5L5 15" stroke-linecap="round" />
+        </svg>
+      } @else {
+        <svg viewBox="0 0 20 20" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75">
+          <path d="M3 6h14M3 10h14M3 14h14" stroke-linecap="round" />
+        </svg>
+      }
+    </button>
   </header>
 
+  @if (mobileMenuOpen()) {
+    <nav class="flex flex-col gap-1 border-b border-[color:var(--color-border)] bg-[color:var(--color-bg)] px-4 py-3 text-sm md:hidden">
+      <a
+        routerLink="/hunts"
+        (click)="closeMobileMenu()"
+        routerLinkActive="text-[color:var(--color-accent)] bg-[color:var(--color-surface)]"
+        class="rounded-md px-3 py-2 font-medium text-[color:var(--color-text-secondary)] transition hover:bg-[color:var(--color-surface)] hover:text-[color:var(--color-text-primary)]"
+      >
+        Hunt History
+      </a>
+      <a
+        routerLink="/compare"
+        (click)="closeMobileMenu()"
+        routerLinkActive="text-[color:var(--color-accent)] bg-[color:var(--color-surface)]"
+        class="rounded-md px-3 py-2 font-medium text-[color:var(--color-text-secondary)] transition hover:bg-[color:var(--color-surface)] hover:text-[color:var(--color-text-primary)]"
+      >
+        Comparisons
+      </a>
+
+      <a
+        routerLink="/import"
+        (click)="closeMobileMenu()"
+        class="mt-2 rounded-md bg-[color:var(--color-accent)] px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-black no-underline transition hover:opacity-90"
+      >
+        New Import
+      </a>
+
+      @if (auth.isAuthenticated()) {
+        @let user = auth.currentUser()!;
+        <div class="mt-2 flex items-center justify-between gap-2 border-t border-[color:var(--color-border)] pt-3">
+          <div class="flex min-w-0 items-center gap-2">
+            @if (user.avatarUrl) {
+              <img [src]="user.avatarUrl" alt="" class="h-7 w-7 shrink-0 rounded-full object-cover" />
+            } @else {
+              <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-accent)] text-xs font-bold text-black">
+                {{ (user.username ?? '?').charAt(0).toUpperCase() }}
+              </div>
+            }
+            <span class="truncate font-medium text-[color:var(--color-text-primary)]">
+              {{ user.username ?? user.discordId }}
+            </span>
+          </div>
+          <button
+            type="button"
+            (click)="onLogout()"
+            class="shrink-0 rounded-md border border-[color:var(--color-border-strong)] px-3 py-1.5 text-xs text-[color:var(--color-text-secondary)] transition hover:border-[color:var(--color-loss)] hover:text-[color:var(--color-loss)]"
+          >
+            Sign out
+          </button>
+        </div>
+      } @else if (auth.loaded()) {
+        <button
+          type="button"
+          (click)="onLogin()"
+          class="mt-2 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-text-secondary)] transition hover:border-[color:var(--color-accent)] hover:text-[color:var(--color-accent)]"
+        >
+          Login with Discord
+        </button>
+      }
+    </nav>
+  }
+
   <div class="flex flex-1">
-    <aside class="flex w-56 shrink-0 flex-col border-r border-[color:var(--color-border)] bg-[color:var(--color-bg)] p-4">
+    <aside class="hidden w-56 shrink-0 flex-col border-r border-[color:var(--color-border)] bg-[color:var(--color-bg)] p-4 md:flex">
       <div class="mb-6 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface)] p-3">
         <p class="text-sm font-semibold text-[color:var(--color-accent)]">Hunt Analytics</p>
       </div>
@@ -90,7 +170,7 @@
       </a>
     </aside>
 
-    <main class="flex-1 px-8 py-6">
+    <main class="min-w-0 flex-1 px-4 py-5 sm:px-6 md:px-8 md:py-6">
       <router-outlet />
     </main>
   </div>

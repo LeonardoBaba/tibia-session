@@ -12,17 +12,17 @@
             [value]="s.name"
             placeholder="Name this hunt..."
             [allowEmpty]="false"
-            displayClass="text-3xl font-bold text-[color:var(--color-text-secondary)]"
-            inputClass="text-3xl font-bold text-[color:var(--color-text-primary)]"
+            displayClass="text-2xl font-bold sm:text-3xl text-[color:var(--color-text-secondary)]"
+            inputClass="text-2xl font-bold sm:text-3xl text-[color:var(--color-text-primary)]"
             (save)="onNameSave($event)"
           />
         } @else {
-          <h1 class="text-3xl font-bold text-[color:var(--color-text-secondary)]">
+          <h1 class="text-2xl font-bold sm:text-3xl text-[color:var(--color-text-secondary)]">
             {{ s.name ?? 'Unnamed hunt' }}
           </h1>
         }
       } @else {
-        <h1 class="text-3xl font-bold text-[color:var(--color-text-secondary)]">Hunt Details</h1>
+        <h1 class="text-2xl font-bold sm:text-3xl text-[color:var(--color-text-secondary)]">Hunt Details</h1>
       }
       <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
         Detailed breakdown of session performance.

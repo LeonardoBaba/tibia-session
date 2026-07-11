@@ -1,3 +1,16 @@
 :host {
   display: block;
 }
+
+/* Session summary cards: stacked on mobile, one column per session from the sm breakpoint up. */
+.session-cards {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .session-cards {
+    grid-template-columns: repeat(var(--card-cols, 1), minmax(0, 1fr));
+  }
+}
