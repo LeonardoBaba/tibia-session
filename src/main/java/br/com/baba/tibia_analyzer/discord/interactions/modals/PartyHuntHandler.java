@@ -7,6 +7,7 @@ import br.com.baba.tibia_analyzer.discord.embed.PartyHuntEmbedFactory;
 import br.com.baba.tibia_analyzer.discord.enums.InputEnum;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
+import net.dv8tion.jda.api.interactions.modals.ModalMapping;
 import net.dv8tion.jda.api.utils.FileUpload;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,6 +33,8 @@ public class PartyHuntHandler implements ModalHandler {
         event.deferReply().queue();
 
         String input = event.getValue(InputEnum.SESSION_INPUT.getId()).getAsString();
+        String name = getOptionalValue(event, InputEnum.NAME_INPUT.getId());
+        String comment = getOptionalValue(event, InputEnum.COMMENT_INPUT.getId());
         User discordUser = event.getUser();
         String ownerDiscordId = discordUser.getId();
 
@@ -41,7 +44,7 @@ public class PartyHuntHandler implements ModalHandler {
                 discordUser.getEffectiveAvatarUrl());
 
         ProcessedSession processed = partyHuntService.processAndPersist(
-                input, null, null, ownerDiscordId);
+                input, name, comment, ownerDiscordId);
 
         FileUpload sessionFile = FileUpload.fromData(
                 input.getBytes(StandardCharsets.UTF_8), SESSION_FILE_NAME);
@@ -51,5 +54,14 @@ public class PartyHuntHandler implements ModalHandler {
                         processed.splitterResult(), processed.saved().getId()))
                 .addFiles(sessionFile)
                 .queue();
+    }
+
+    private String getOptionalValue(ModalInteractionEvent event, String id) {
+        ModalMapping mapping = event.getValue(id);
+        if (mapping == null) {
+            return null;
+        }
+        String value = mapping.getAsString();
+        return value.isBlank() ? null : value;
     }
 }
