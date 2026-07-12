@@ -19,6 +19,13 @@
       >
         Comparisons
       </a>
+      <a
+        routerLink="/stamina"
+        routerLinkActive="text-[color:var(--color-accent)] border-b-2 border-[color:var(--color-accent)]"
+        class="border-b-2 border-transparent py-1 text-[color:var(--color-text-secondary)] transition hover:text-[color:var(--color-text-primary)]"
+      >
+        Stamina
+      </a>
     </nav>
 
     <div class="hidden items-center gap-3 md:flex">
@@ -109,6 +116,14 @@
         class="rounded-md px-3 py-2 font-medium text-[color:var(--color-text-secondary)] transition hover:bg-[color:var(--color-surface)] hover:text-[color:var(--color-text-primary)]"
       >
         Comparisons
+      </a>
+      <a
+        routerLink="/stamina"
+        (click)="closeMobileMenu()"
+        routerLinkActive="text-[color:var(--color-accent)] bg-[color:var(--color-surface)]"
+        class="rounded-md px-3 py-2 font-medium text-[color:var(--color-text-secondary)] transition hover:bg-[color:var(--color-surface)] hover:text-[color:var(--color-text-primary)]"
+      >
+        Stamina
       </a>
 
       <a

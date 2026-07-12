@@ -23,6 +23,11 @@ export const routes: Routes = [
           import('./features/compare/compare.routes').then((m) => m.COMPARE_ROUTES),
       },
       {
+        path: 'stamina',
+        loadChildren: () =>
+          import('./features/stamina/stamina.routes').then((m) => m.STAMINA_ROUTES),
+      },
+      {
         path: 'import',
         loadChildren: () =>
           import('./features/import/import.routes').then((m) => m.IMPORT_ROUTES),

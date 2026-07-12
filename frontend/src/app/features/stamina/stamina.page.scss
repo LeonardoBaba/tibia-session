@@ -1,0 +1,68 @@
+:host {
+  display: block;
+}
+
+/* Stamina slider — accent thumb on a track that matches the app surface. */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--color-border);
+  outline: none;
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  cursor: pointer;
+  border: 3px solid var(--color-bg);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+input[type='range']::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  cursor: pointer;
+  border: 3px solid var(--color-bg);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+/* Render native date/time pickers in dark mode. */
+input[type='datetime-local'] {
+  color-scheme: dark;
+}
+
+input:focus {
+  border-color: var(--color-accent) !important;
+}
+
+/* Timeline scroll container. */
+.stm-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.stm-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 99px;
+  border: 2px solid var(--color-surface);
+}
+.stm-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Tighter outer-cell padding on narrow screens. */
+@media (max-width: 900px) {
+  .stm-tcell {
+    padding-left: 14px;
+    padding-right: 10px;
+  }
+  .stm-tcell-r {
+    padding-left: 10px;
+    padding-right: 14px;
+  }
+}
