@@ -33,3 +33,6 @@ build/
 .vscode/
 /.env
 /src/main/java/teste.java
+
+### Planos locais ###
+**/docs/planos/
