@@ -1,4 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { StaminaTabs } from './components/stamina-tabs/stamina-tabs';
+import {
+  BONUS_REGEN_OFFLINE_MIN,
+  REGEN_OFFLINE_MIN,
+  STAMINA_BONUS as BONUS,
+  STAMINA_LOW as LOW,
+  STAMINA_MAX as MAX,
+} from './stamina-rules';
 
 interface Hunt {
   id: string;
@@ -74,10 +82,6 @@ interface ExtRow {
   tooSoon: boolean;
 }
 
-const MAX = 2520; // 42:00
-const BONUS = 39 * 60; // 2340 — regen slows and the +50% XP zone begins here
-const LOW = 14 * 60; // 840 — below this stamina is the −50% XP penalty zone
-
 /** Semantic colors as theme variables so the timeline follows the app palette. */
 const COLOR = {
   primary: 'var(--color-text-primary)',
@@ -101,6 +105,7 @@ const ZONE = {
 @Component({
   selector: 'app-stamina-page',
   standalone: true,
+  imports: [StaminaTabs],
   templateUrl: './stamina.page.html',
   styleUrl: './stamina.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -240,7 +245,8 @@ export class StaminaPage {
       if (inHunt) {
         stamina = Math.max(0, stamina - 1);
       } else if (stamina < MAX) {
-        stamina = Math.min(MAX, stamina + (stamina < BONUS ? 1 / 3 : 1 / 6));
+        const regenEvery = stamina < BONUS ? REGEN_OFFLINE_MIN : BONUS_REGEN_OFFLINE_MIN;
+        stamina = Math.min(MAX, stamina + 1 / regenEvery);
       }
       t += 1;
 

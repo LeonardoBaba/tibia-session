@@ -1,17 +1,20 @@
 <section class="mx-auto flex w-full max-w-[1160px] flex-col gap-6">
-  <div>
-    <nav class="mb-2 text-xs text-[color:var(--color-text-muted)]">
-      <span class="text-[color:var(--color-text-secondary)]">Tools</span>
-      <span class="mx-1">/</span>
-      <span class="text-[color:var(--color-text-secondary)]">Stamina Recovery</span>
-    </nav>
-    <h1 class="m-0 text-2xl font-bold tracking-tight text-[color:var(--color-text-primary)] sm:text-3xl">
-      Stamina Recovery Simulator
-    </h1>
-    <p class="mt-1.5 max-w-[640px] text-sm text-[color:var(--color-text-muted)]">
-      Enter your current stamina and see the exact real-world time each hour becomes available —
-      right up to a full 42:00. Add hunts to see the timeline recalculate around your online time.
-    </p>
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div class="min-w-0 flex-[1_1_420px]">
+      <nav class="mb-2 text-xs text-[color:var(--color-text-muted)]">
+        <span class="text-[color:var(--color-text-secondary)]">Tools</span>
+        <span class="mx-1">/</span>
+        <span class="text-[color:var(--color-text-secondary)]">Stamina Recovery</span>
+      </nav>
+      <h1 class="m-0 text-2xl font-bold tracking-tight text-[color:var(--color-text-primary)] sm:text-3xl">
+        Stamina Recovery Simulator
+      </h1>
+      <p class="mt-1.5 max-w-[640px] text-sm text-[color:var(--color-text-muted)]">
+        Enter your current stamina and see the exact real-world time each hour becomes available —
+        right up to a full 42:00. Add hunts to see the timeline recalculate around your online time.
+      </p>
+    </div>
+    <app-stamina-tabs class="w-full sm:w-auto" />
   </div>
 
   <div

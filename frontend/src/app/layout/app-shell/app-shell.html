@@ -7,22 +7,25 @@
     <nav class="hidden items-center gap-6 text-sm font-medium md:flex">
       <a
         routerLink="/hunts"
-        routerLinkActive="text-[color:var(--color-accent)] border-b-2 border-[color:var(--color-accent)]"
-        class="border-b-2 border-transparent py-1 text-[color:var(--color-text-secondary)] transition hover:text-[color:var(--color-text-primary)]"
+        routerLinkActive=""
+        ariaCurrentWhenActive="page"
+        class="border-b-2 border-transparent py-1 text-[color:var(--color-text-secondary)] transition hover:text-[color:var(--color-text-primary)] aria-[current=page]:border-[color:var(--color-accent)] aria-[current=page]:text-[color:var(--color-accent)]"
       >
         Hunt History
       </a>
       <a
         routerLink="/compare"
-        routerLinkActive="text-[color:var(--color-accent)] border-b-2 border-[color:var(--color-accent)]"
-        class="border-b-2 border-transparent py-1 text-[color:var(--color-text-secondary)] transition hover:text-[color:var(--color-text-primary)]"
+        routerLinkActive=""
+        ariaCurrentWhenActive="page"
+        class="border-b-2 border-transparent py-1 text-[color:var(--color-text-secondary)] transition hover:text-[color:var(--color-text-primary)] aria-[current=page]:border-[color:var(--color-accent)] aria-[current=page]:text-[color:var(--color-accent)]"
       >
         Comparisons
       </a>
       <a
         routerLink="/stamina"
-        routerLinkActive="text-[color:var(--color-accent)] border-b-2 border-[color:var(--color-accent)]"
-        class="border-b-2 border-transparent py-1 text-[color:var(--color-text-secondary)] transition hover:text-[color:var(--color-text-primary)]"
+        routerLinkActive=""
+        ariaCurrentWhenActive="page"
+        class="border-b-2 border-transparent py-1 text-[color:var(--color-text-secondary)] transition hover:text-[color:var(--color-text-primary)] aria-[current=page]:border-[color:var(--color-accent)] aria-[current=page]:text-[color:var(--color-accent)]"
       >
         Stamina
       </a>
@@ -104,24 +107,27 @@
       <a
         routerLink="/hunts"
         (click)="closeMobileMenu()"
-        routerLinkActive="text-[color:var(--color-accent)] bg-[color:var(--color-surface)]"
-        class="rounded-md px-3 py-2 font-medium text-[color:var(--color-text-secondary)] transition hover:bg-[color:var(--color-surface)] hover:text-[color:var(--color-text-primary)]"
+        routerLinkActive=""
+        ariaCurrentWhenActive="page"
+        class="rounded-md px-3 py-2 font-medium text-[color:var(--color-text-secondary)] transition hover:bg-[color:var(--color-surface)] hover:text-[color:var(--color-text-primary)] aria-[current=page]:bg-[color:var(--color-surface)] aria-[current=page]:text-[color:var(--color-accent)]"
       >
         Hunt History
       </a>
       <a
         routerLink="/compare"
         (click)="closeMobileMenu()"
-        routerLinkActive="text-[color:var(--color-accent)] bg-[color:var(--color-surface)]"
-        class="rounded-md px-3 py-2 font-medium text-[color:var(--color-text-secondary)] transition hover:bg-[color:var(--color-surface)] hover:text-[color:var(--color-text-primary)]"
+        routerLinkActive=""
+        ariaCurrentWhenActive="page"
+        class="rounded-md px-3 py-2 font-medium text-[color:var(--color-text-secondary)] transition hover:bg-[color:var(--color-surface)] hover:text-[color:var(--color-text-primary)] aria-[current=page]:bg-[color:var(--color-surface)] aria-[current=page]:text-[color:var(--color-accent)]"
       >
         Comparisons
       </a>
       <a
         routerLink="/stamina"
         (click)="closeMobileMenu()"
-        routerLinkActive="text-[color:var(--color-accent)] bg-[color:var(--color-surface)]"
-        class="rounded-md px-3 py-2 font-medium text-[color:var(--color-text-secondary)] transition hover:bg-[color:var(--color-surface)] hover:text-[color:var(--color-text-primary)]"
+        routerLinkActive=""
+        ariaCurrentWhenActive="page"
+        class="rounded-md px-3 py-2 font-medium text-[color:var(--color-text-secondary)] transition hover:bg-[color:var(--color-surface)] hover:text-[color:var(--color-text-primary)] aria-[current=page]:bg-[color:var(--color-surface)] aria-[current=page]:text-[color:var(--color-accent)]"
       >
         Stamina
       </a>
